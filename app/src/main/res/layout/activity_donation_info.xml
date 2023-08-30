@@ -59,6 +59,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="48dp"
                             android:contentDescription="Food type"
+                            android:layout_marginStart="8dp"
+                            android:prompt="@string/spinner_hint"
                             android:id="@+id/spFoodType"/>
                     </LinearLayout>
 
@@ -124,6 +126,7 @@
                             android:background="@drawable/edit_text_bg"
                             android:hint="29/08/2023"
                             android:focusable="false"
+                            android:id="@+id/etPreparationDate"
                             android:padding="5dp"
                             android:layout_weight="1"/>
                     </LinearLayout>
@@ -144,6 +147,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:background="@drawable/edit_text_bg"
+                            android:focusable="false"
+                            android:id="@+id/etExpiryDate"
                             android:hint="29/08/2023"
                             android:padding="5dp"
                             android:layout_weight="1"/>
