@@ -7,4 +7,42 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="spinner_hint">Select</string>
+    <string-array name="food_type_donor_array">
+        <item>Select</item>
+        <item>Cooked Meals</item>
+        <item>Perishable Items,</item>
+        <item>Non-Perishable Items</item>
+        <item>Fruits</item>
+        <item>Vegetables</item>
+        <!-- Add more options as needed -->
+    </string-array>
+    <string-array name="quantity">
+        <item>KG(s)</item>
+        <item>People</item>
+    </string-array>
+    <string-array name="food_quality">
+        <item>Select</item>
+        <item>Excellent</item>
+        <item>Good</item>
+        <item>Average</item>
+        <item>Poor</item>
+    </string-array>
+    <string-array name="food_packaging">
+        <item>None</item>
+        <item>Container</item>
+        <item>Bags</item>
+    </string-array>
+    <string-array name="food_type_recipient">
+        <item>Any</item>
+        <item>Cooked meals</item>
+        <item>Vegetables</item>
+        <item>Fruits</item>
+    </string-array>
+    <string-array name="food_urgency">
+        <item>Select</item>
+        <item>Critical</item>
+        <item>High</item>
+        <item>Moderate</item>
+        <item>Low</item>
+    </string-array>
 </resources>
