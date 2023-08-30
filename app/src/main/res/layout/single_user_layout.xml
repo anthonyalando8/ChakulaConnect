@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?selectableItemBackground"
+    android:layout_margin="5dp"
+    android:padding="5dp"
+    android:background="@drawable/shadow_bg"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:id="@+id/civ_users_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:src="@drawable/user"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:focusable="true"
+            app:layout_constraintStart_toEndOf="@+id/civ_users_image"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="User name"
+            android:textSize="16sp"
+            android:layout_marginStart="8dp"
+            android:id="@+id/txt_users_name" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_users_role"
+            app:layout_constraintBottom_toBottomOf="@id/btn_users_connect"
+            app:layout_constraintStart_toEndOf="@id/civ_users_image"
+            android:paddingBottom="8dp"
+            android:layout_marginStart="8dp"/>
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Connect"
+            android:id="@+id/btn_users_connect"
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@+id/txt_users_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="@color/LightGrey"
+            app:cornerRadius="8dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

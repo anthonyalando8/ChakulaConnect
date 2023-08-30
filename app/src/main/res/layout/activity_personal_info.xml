@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PersonalInfo">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="Error!!!"
+        android:textColor="@color/red"
+        android:visibility="gone"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:padding="10dp"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:id="@+id/txtInfoError"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="Body"
+        app:layout_constraintStart_toStartOf="parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Optimize your 'ChakulaConnect' experience by completing your profile. Help us efficiently connect surplus food to those in need."
+                android:id="@+id/txtInfo"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/txtInfo"
+                android:layout_marginTop="10dp"
+                android:id="@+id/sectionOne"
+                android:background="@drawable/light_bg"
+                android:padding="5dp"
+                app:layout_constraintStart_toStartOf="parent">
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:hint="Phone Number"
+                    android:padding="10dp"
+                    android:layout_margin="5dp"
+                    android:inputType="phone"
+                    android:background="@drawable/edit_text_bg"
+                    android:id="@+id/etPhone"/>
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:id="@+id/etCountry"
+                    android:hint="Country"
+                    android:layout_margin="5dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:background="@drawable/edit_text_bg"
+                    app:layout_constraintTop_toBottomOf="@id/etPhone"
+                    android:padding="10dp"/>
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/etCounty"
+                    app:layout_constraintTop_toBottomOf="@id/etCountry"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:hint="County or Region"
+                    android:background="@drawable/edit_text_bg"
+                    android:padding="10dp"/>
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:id="@+id/etAddress"
+                    android:padding="10dp"
+                    android:hint="Address"
+                    android:background="@drawable/edit_text_bg"
+                    app:layout_constraintTop_toBottomOf="@+id/etCounty"
+                    android:layout_margin="5dp"
+                    app:layout_constraintStart_toStartOf="parent"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/etAddress"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:id="@+id/txtMoreDesc"
+                    android:text="More about you (optional)"
+                    android:padding="10dp"/>
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/etMoreDesc"
+                    app:layout_constraintTop_toBottomOf="@+id/txtMoreDesc"
+                    android:padding="10dp"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:minLines="3"
+                    android:gravity="bottom"
+                    android:layout_margin="5dp"
+                    android:scrollbars="vertical"
+                    android:background="@drawable/edit_text_bg"
+                    android:hint="Who are you?"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnSave"
+                app:layout_constraintTop_toBottomOf="@id/sectionOne"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:text="Confirm and save"
+                android:textAllCaps="false"
+                android:layout_marginTop="15dp"
+                app:cornerRadius="15dp"
+                android:height="55dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

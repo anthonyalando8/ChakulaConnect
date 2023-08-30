@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="Dashboard"
+        android:icon="@drawable/dashboard_black"
+        android:id="@+id/nav_side_dashboard"/>
+    <item
+        android:id="@+id/nav_side_donor_menu"
+        android:title="Donor"
+        android:visible="false">
+        <menu>
+            <item
+                android:id="@+id/nav_side_my_donations"
+                android:title="My donations"
+                android:icon="@drawable/gift_black"/>
+            <item
+                android:id="@+id/nav_side_donate"
+                android:icon="@drawable/donate"
+                android:title="Donate"/>
+            <item
+                android:id="@+id/nav_side_recipients"
+                android:icon="@drawable/heart_crack"
+                android:title="Recipients"/>
+            <item
+                android:id="@+id/nav_side_donate_guide"
+                android:icon="@drawable/support"
+                android:title="Donation guidelines"/>
+            <item
+                android:id="@+id/nav_side_donation_history"
+                android:icon="@drawable/history"
+                android:title="Donation  history"/>
+        </menu>
+
+    </item>
+    <item
+        android:id="@+id/nav_side_recipient_menu"
+        android:title="Recipient"
+        android:visible="false">
+        <menu>
+            <item
+                android:id="@+id/nav_side_request"
+                android:icon="@drawable/envelope_solid"
+                android:title="My requests"/>
+            <item
+                android:id="@+id/nav_side_make_request"
+                android:icon="@drawable/make_request"
+                android:title="Make request"/>
+            <item
+                android:id="@+id/nav_side_received_donations"
+                android:icon="@drawable/gift_solid"
+                android:title="Received donations"/>
+            <item
+                android:id="@+id/nav_side_donors"
+                android:icon="@drawable/people_carry_box_solid"
+                android:title="Donors"/>
+            <item
+                android:id="@+id/nav_side_request_guide"
+                android:icon="@drawable/support"
+                android:title="Request guidelines"/>
+            <item
+                android:id="@+id/nav_side_complain"
+                android:icon="@drawable/flag_solid"
+                android:title="Make complain"/>
+        </menu>
+
+    </item>
+    <item
+        android:id="@+id/nav_side_notification"
+        android:icon="@drawable/notifications_black"
+        android:title="Notifications"/>
+    <item
+        android:id="@+id/nav_side_manage_acc"
+        android:icon="@drawable/manage_account_black"
+        android:title="Manage account"/>
+    <item
+        android:id="@+id/nav_side_feedback"
+        android:icon="@drawable/feedback_black"
+        android:title="Feedback"/>
+    <item
+        android:id="@+id/nav_side_settings"
+        android:icon="@drawable/settings_black"
+        android:title="Settings"/>
+    <item
+        android:id="@+id/nav_side_help"
+        android:icon="@drawable/help_black"
+        android:title="Help and support"/>
+    <item
+        android:id="@+id/nav_side_about"
+        android:icon="@drawable/info_black"
+        android:title="About us"/>
+    <item
+        android:id="@+id/nav_side_logout"
+        android:icon="@drawable/logout_black"
+        android:title="Logout"/>
+
+</menu>

@@ -1,0 +1,49 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ChakulaConnect" parent="Theme.MaterialComponents.DayNight">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryVariant">@color/primaryColor</item>
+        <item name="colorOnPrimary">@color/LightGrey</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/white</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="homeAsUpIndicator">@drawable/custom_back_icon</item>
+        <item name="android:textColor">@color/primaryDark</item>
+
+    </style>
+    <style name="SplashScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">?attr/colorPrimary</item>
+    </style>
+    <style name="ToolbarTheme" parent="Widget.AppCompat.Toolbar">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="android:background">@color/primaryColor</item>
+    </style>
+    <style name="MainActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/primaryColor</item>
+    </style>
+    <style name="NavigationViewTheme" parent="Widget.Design.NavigationView">
+        <!-- Customize attributes specific to NavigationView -->
+        <item name="android:background">@color/white</item>
+        <item name="itemIconTint">@color/primaryDark</item>
+        <item name="itemTextColor">@color/primaryDark</item>
+        <item name="android:textColor">@color/primaryDark</item>
+
+    </style>
+    <style name="CustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabIndicatorHeight">4dp</item> <!-- Customize indicator height -->
+        <item name="android:background">@color/primaryColor</item>
+        <item name="tabIndicatorGravity">bottom</item>
+        <item name="tabTextAppearance">@style/CustomTabTextAppearance</item> <!-- Customize text appearance -->
+    </style>
+
+    <style name="CustomTabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">12sp</item> <!-- Customize text size -->
+    </style>
+
+</resources>

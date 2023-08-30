@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Chakula Connect</string>
+    <string name="google_login">Continue with Google</string>
+    <string name="appDesc"><![CDATA[Rescue & Nourish]]></string>
+    <string name="nav_open">Open</string>
+    <string name="nav_close">Close</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

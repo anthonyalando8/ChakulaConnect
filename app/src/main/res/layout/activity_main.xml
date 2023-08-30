@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/drawer_layout"
+    android:contentDescription="Main drawer layout"
+    tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            app:titleTextColor="@android:color/white"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:theme="@style/ToolbarTheme">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_gravity="start"
+                android:layout_weight="1" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="end">
+                <ImageButton
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/add_black"
+                    android:id="@+id/nav_add_post"
+                    android:background="@drawable/circular_bg_colored"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Post"/>
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/nav_account_icon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/account"
+                    android:background="@drawable/circular_bg_colored"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Account" />
+
+                <ImageButton
+                    android:id="@+id/nav_menu_icon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/menu"
+                    android:background="@drawable/circular_bg_colored"
+                    android:padding="5dp"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Menu Icon" />
+            </LinearLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:minHeight="?attr/actionBarSize"
+            style="@style/CustomTabLayout"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:tabMode="fixed"
+            app:tabGravity="fill"
+            app:tabTextColor="@color/LightGrey"
+            app:tabSelectedTextColor="@color/info"/>
+        <androidx.viewpager2.widget.ViewPager2
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/viewPagerMain"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tab_layout">
+        </androidx.viewpager2.widget.ViewPager2>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <com.google.android.material.navigation.NavigationView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:id="@+id/drawer_navigation"
+        app:menu="@menu/side_nav_main_menu"
+        android:theme="@style/NavigationViewTheme"
+        app:headerLayout="@layout/nav_header"/>
+
+
+</androidx.drawerlayout.widget.DrawerLayout>

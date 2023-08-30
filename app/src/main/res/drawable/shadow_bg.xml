@@ -1,0 +1,15 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Add the shadow layer at the bottom -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#20000000" /> <!-- Adjust the background color -->
+            <corners android:radius="8dp" /> <!-- Adjust the corner radius -->
+        </shape>
+    </item>
+    <item android:bottom="5dp">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorSecondary" /> <!-- Shadow color and opacity -->
+            <corners android:radius="8dp" /> <!-- Corner radius, match main content layer -->
+        </shape>
+    </item>
+</layer-list>

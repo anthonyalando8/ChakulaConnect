@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "699975139999",
+    "project_id": "chakula-connect",
+    "storage_bucket": "chakula-connect.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699975139999:android:9cd4b7d52cae9ae9c458aa",
+        "android_client_info": {
+          "package_name": "com.chakulaconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "699975139999-0f947c3ds1h2mdnejrva8ctid5gkj9lq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzeFxkycJJ9fCybu_lq9CLIYTZItPpMZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "699975139999-0f947c3ds1h2mdnejrva8ctid5gkj9lq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AuthLogin">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="Error!!!"
+        android:visibility="gone"
+        android:elevation="8dp"
+        android:padding="5dp"
+        android:background="@color/white"
+        android:textAlignment="center"
+        android:id="@+id/tvError"
+        android:textColor="@color/red"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_margin="5dp"
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintEnd_toStartOf="parent"
+                android:id="@+id/linear1"
+                app:layout_constraintBottom_toTopOf="@id/btnGoogleLogin"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:id="@+id/avatar"
+                    android:src="@drawable/user"
+                    android:layout_gravity="center_horizontal"
+                    android:contentDescription="Avatar" />
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:id="@+id/txtEmail"
+                    android:hint="Email"
+                    android:inputType="textEmailAddress"
+                    android:padding="10dp"
+                    android:focusable="true"
+                    android:autofillHints="emailAddress" />
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:id="@+id/txtPassword"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:padding="10dp"
+                    android:layout_marginTop="10dp"
+                    android:importantForAutofill="no" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/cbRemember"
+                        android:layout_weight="1"
+                        android:text="Remember Me"
+                        android:checked="true"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:id="@+id/txtForgotPassword"
+                        android:padding="10dp"
+                        android:text="Forgot Password"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:id="@+id/btnLogin"
+                    android:text="Login"
+                    android:padding="10dp"
+                    app:icon="@drawable/login"
+                    android:textColor="@color/LightGrey"
+                    app:iconTint="@color/LightGrey"
+                    app:cornerRadius="20dp"
+                    android:textAllCaps="false"
+                    android:layout_marginTop="8dp"
+                    android:layout_gravity="center_horizontal"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:id="@+id/googleIcon"
+                app:layout_constraintTop_toTopOf="@+id/btnGoogleLogin"
+                app:layout_constraintStart_toStartOf="@id/btnGoogleLogin"
+                app:layout_constraintBottom_toBottomOf="@id/btnGoogleLogin"
+                android:layout_marginStart="10dp"
+                android:src="@drawable/google"
+                android:contentDescription="Google Icon" />
+            <TextView
+                android:id="@+id/btnGoogleLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="12dp"
+                android:text="@string/google_login"
+                android:background="@drawable/transparent_bg"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                app:iconSize="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/linear1" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/signUpLink"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnGoogleLogin"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:padding="10dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="New user?"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" Sign up."
+                    android:textColor="@color/info"/>
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
