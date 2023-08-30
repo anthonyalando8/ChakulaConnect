@@ -1,20 +1,18 @@
 package com.chakulaconnect;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -96,22 +94,20 @@ public class ActivityDonationInfo extends AppCompatActivity {
             }
 
         }
-        etExpiryDate.setOnClickListener(v->{
-            setDate(true, false, etExpiryDate);
-        });
-        etPackDate.setOnClickListener(v->{
-            setDate(false, true, etPackDate);
-        });
-//        ArrayAdapter<CharSequence> food_type_donor_adapter = ArrayAdapter.createFromResource(
-//                this, R.array.food_type_donor_array, android.R.layout.simple_spinner_item
-//        );
+        etExpiryDate.setOnClickListener(v-> setDate(true, false, etExpiryDate));
+        etPackDate.setOnClickListener(v-> setDate(false, true, etPackDate));
+        setSpinnerAdapter(R.array.food_type_donor_array, spFoodTypeDonor);
+        setSpinnerAdapter(R.array.quantity, spQuantityDonor);
+        setSpinnerAdapter(R.array.food_quality, spQuality);
+        setSpinnerAdapter(R.array.food_packaging, spPackaging);
+        setSpinnerAdapter(R.array.quantity, spFoodQuantityRecipient);
+        setSpinnerAdapter(R.array.food_urgency, spFoodUrgency);
+        setSpinnerAdapter(R.array.food_type_recipient, spFoodTypeRecipient);
+//        // Retrieve the list of items from strings.xml
+//        String[] spinnerItems = getResources().getStringArray(R.array.food_type_donor_array);
 //
-//        spFoodTypeDonor.setAdapter(food_type_donor_adapter);
-        // Retrieve the list of items from strings.xml
-        String[] spinnerItems = getResources().getStringArray(R.array.food_type_donor_array);
-
-        CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(this, Arrays.asList(spinnerItems));
-        spFoodTypeDonor.setAdapter(adapter);
+//        CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(this, Arrays.asList(spinnerItems));
+//        spFoodTypeDonor.setAdapter(adapter);
     }
 
     @Override
@@ -142,15 +138,12 @@ public class ActivityDonationInfo extends AppCompatActivity {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                 android.R.style.Theme_Holo_Light_Dialog,
-                new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
-                        currentDate.set(i, i1, 12);
-                        // Format the selected date
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-                        selectedDate[0] = dateFormat.format(currentDate.getTime());
-                        editText.setText(selectedDate[0]);
-                    }
+                (datePicker, i, i1, i2) -> {
+                    currentDate.set(i, i1, 12);
+                    // Format the selected date
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                    selectedDate[0] = dateFormat.format(currentDate.getTime());
+                    editText.setText(selectedDate[0]);
                 }, currentYear, currentMonth, currentDay);
         if(isExpiry){
             // Set the minimum and maximum dates for the DatePickerDialog
@@ -163,5 +156,12 @@ public class ActivityDonationInfo extends AppCompatActivity {
         }
         datePickerDialog.show();
 
+    }
+    private void setSpinnerAdapter(int arrayValues, Spinner spinner){
+        ArrayAdapter<CharSequence> food_type_donor_adapter = ArrayAdapter.createFromResource(
+                this, arrayValues, android.R.layout.simple_spinner_item
+        );
+        food_type_donor_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(food_type_donor_adapter);
     }
 }
