@@ -14,6 +14,7 @@
         <!-- Customize your theme here. -->
         <item name="homeAsUpIndicator">@drawable/custom_back_icon</item>
         <item name="android:textColor">@color/primaryDark</item>
+        <item name="android:textCursorDrawable">@drawable/custom_cursor</item>
 
     </style>
     <style name="SplashScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">

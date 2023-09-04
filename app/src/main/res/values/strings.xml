@@ -10,7 +10,7 @@
     <string-array name="food_type_donor_array">
         <item>Select</item>
         <item>Cooked Meals</item>
-        <item>Perishable Items,</item>
+        <item>Perishable Items</item>
         <item>Non-Perishable Items</item>
         <item>Fruits</item>
         <item>Vegetables</item>
@@ -44,5 +44,11 @@
         <item>High</item>
         <item>Moderate</item>
         <item>Low</item>
+    </string-array>
+    <string-array name="business_type">
+        <item>Restaurant</item>
+        <item>Hotel</item>
+        <item>Supermarket</item>
+        <item>Other</item>
     </string-array>
 </resources>

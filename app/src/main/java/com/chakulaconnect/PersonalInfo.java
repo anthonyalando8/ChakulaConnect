@@ -2,9 +2,13 @@ package com.chakulaconnect;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,10 +30,14 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
     FirebaseAuth auth;
     String userId;
     DatabaseReference databaseReference;
-    EditText etPhone, etCountry, etCounty, etAddress, etMoreInfo;
+    EditText etPhone, etCountry, etCounty, etAddress, etMoreInfo, etCompanyName, etCity, etOtherBusiness;
+    LinearLayout llOrgInfo;
+    Spinner spBusType;
     MaterialButton btnSave;
 
     TextView txtInfoError;
+    LocationModel locationModel;
+    String country = "", county = "", city = "", streetAddress = "", strLongitude = "", strLatitude = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,11 +54,46 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
         etCounty = findViewById(R.id.etCounty);
         etAddress = findViewById(R.id.etAddress);
         etMoreInfo = findViewById(R.id.etMoreDesc);
+        etCity = findViewById(R.id.etCity);
+        etCompanyName = findViewById(R.id.etCompanyName);
+        etOtherBusiness = findViewById(R.id.etOrganisationTypeOther);
+
+        spBusType = findViewById(R.id.spCompanyType);
+
         btnSave = findViewById(R.id.btnSave);
         txtInfoError = findViewById(R.id.txtInfoError);
 
         if(isUser()){
             userId = user.getUid();
+            LocationUtil locationUtil = new LocationUtil(this);
+            locationUtil.requestLocationUpdates(new LocationUtil.LocationCallback() {
+                @Override
+                public void onLocationResult(Location location, String country, String region, String city, String streetAddress, String countryCode, String formattedAddress) {
+                    locationModel = new LocationModel(country, region, city, streetAddress, Double.toString(location.getLongitude()), Double.toString(location.getLatitude()));
+                    setLocationDetails(Double.toString(location.getLongitude()), Double.toString(location.getLatitude()), country, region, city, streetAddress);
+                }
+            });
+        }
+        String[] bussType = getResources().getStringArray(R.array.business_type);
+        final String[] BusinessType = {""};
+        spBusType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                BusinessType[0] = adapterView.getItemAtPosition(i).toString();
+                if(BusinessType[0].equals(bussType[bussType.length - 1])){
+                    etOtherBusiness.setVisibility(View.VISIBLE);
+                }else {
+                    etOtherBusiness.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        if(BusinessType[0].equals("Other")){
+            BusinessType[0] = etOtherBusiness.getText().toString().trim();
         }
         btnSave.setOnClickListener(v->{
             Map<String, Object> moreInfo = new HashMap<>();
@@ -58,15 +101,18 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
             String Phone = etPhone.getText().toString().trim();
             String Country = etCountry.getText().toString().trim();
             String County = etCounty.getText().toString().trim();
+            String City = etCity.getText().toString().trim();
+            String CompanyName = etCompanyName.getText().toString().trim();
+
             String Address = etAddress.getText().toString().trim();
             String MoreInfo = etMoreInfo.getText().toString().trim();
-
             if(validate(Phone, Country, County, Address, MoreInfo)){
+                locationModel = new LocationModel(Country, County, City, Address, strLongitude, strLatitude);
                 moreInfo.put("phone", Phone);
-                moreInfo.put("country", Country);
-                moreInfo.put("county", County);
-                moreInfo.put("address", Address);
+                moreInfo.put("companyName", CompanyName);
+                moreInfo.put("companyBusiness", BusinessType[0]);
                 moreInfo.put("moreInfo", MoreInfo);
+                moreInfo.put("location", locationModel);
 
                 updateUserInfo(moreInfo);
             }
@@ -147,6 +193,19 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
                 startActivity(loginIntent);
             });
         }
+    }
+    private void setLocationDetails(String strLong, String strLat, String strCountry, String strCounty, String strCity, String strStreetAddress){
+        strLatitude = strLat;
+        strLongitude = strLong;
+        country = strCountry;
+        county = strCounty;
+        city = strCity;
+
+        streetAddress = strStreetAddress;
+        etCountry.setText(strCountry);
+        etCounty.setText(strCounty);
+        etCity.setText(strCity);
+        etAddress.setText(strStreetAddress);
     }
 
 }

@@ -84,6 +84,6 @@ public class PermissionUtil {
                     public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
                         requestLocationPermission(permissionCallback);
                     }
-                });
+                }).check();
     }
 }

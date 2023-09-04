@@ -220,6 +220,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                                                     moreInfo.put("county", "");
                                                                                     moreInfo.put("address", "");
                                                                                     moreInfo.put("moreInfo", "");
+                                                                                    moreInfo.put("location", "");
                                                                                     HashMap<String, UserActivityModel> userActivityModelHashMap = new HashMap<>();
                                                                                     userActivityModelHashMap.put(joinDate, new UserActivityModel("New Account Created", "Welcome aboard! Your account is ready.", currentUser.getUid(),joinDate, JOIN_LONG));
 

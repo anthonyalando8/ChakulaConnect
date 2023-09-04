@@ -1,6 +1,11 @@
 package com.chakulaconnect;
 
 import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -9,7 +14,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -22,6 +29,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -47,6 +56,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
+
+import java.io.File;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -129,6 +140,8 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
 
             if(!connectionChecker.isConnected()){
                 if(userData != null){
+                    UserModel userModel = gson.fromJson(userData, UserModel.class);
+                    getValues(userModel);
                     handlesAccComplete(true);
                 }
             }
@@ -166,6 +179,95 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         });
     }
 
+    private void checkUpdates(String EXPECT_VERSION){
+        databaseReference.child("App")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if(snapshot.exists()){
+                            String app_version = snapshot.child("app_version").getValue(String.class);
+                            String app_location = snapshot.child("app_location").getValue(String.class);
+                            if(!EXPECT_VERSION.equals(app_version)) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                builder.setCancelable(false);
+                                builder.setTitle("Updates");
+                                builder.setMessage("Updates available");
+                                builder.setPositiveButton("Update", (dialog, which) -> {
+                                    PermissionUtil permissionUtil = new PermissionUtil(MainActivity.this);
+                                    permissionUtil.requestStoragePermission(new PermissionUtil.storagePermissionCallback() {
+                                        @Override
+                                        public void onPermission(Boolean RESULT) {
+                                            if (RESULT) {
+                                                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(app_location));
+                                                    request.setTitle("App Update");
+                                                    request.setDescription("Downloading update");
+                                                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ChakulaConnect-v-" + app_version + ".apk");
+                                                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+                                                    // Get the DownloadManager service and enqueue the request
+                                                    DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                                                    long downloadId = downloadManager.enqueue(request);
+
+//                                                    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+//                                                        @Override
+//                                                        public void onReceive(Context context, Intent intent) {
+//                                                            String action = intent.getAction();
+//                                                            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+//                                                                long completedDownloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+//                                                                // Check if the downloadId matches the one you initiated
+//                                                                if (completedDownloadId == downloadId) {
+//                                                                    // Handle the download completion here
+//                                                                    Toast.makeText(context, "Download completed", Toast.LENGTH_SHORT).show();
+//
+//                                                                    // Get the URI of the downloaded file
+//                                                                    Uri downloadedFileUri = downloadManager.getUriForDownloadedFile(downloadId);
+//
+//                                                                    if (downloadedFileUri != null) {
+//                                                                        // Create an intent to open the APK file with the package installer
+//                                                                        Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+//                                                                        installIntent.setDataAndType(
+//                                                                                FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".fileprovider", new File(downloadedFileUri.getPath())),
+//                                                                                "application/vnd.android.package-archive"
+//                                                                        );
+//                                                                        installIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                                                                        installIntent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
+//
+//                                                                        context.startActivity(installIntent);
+//
+//                                                                        // Unregister the BroadcastReceiver after the installation
+//                                                                        context.unregisterReceiver(this);
+//                                                                    } else {
+//                                                                        // Handle the case where the downloaded file URI is null
+//                                                                        Toast.makeText(context, "Failed to open downloaded file", Toast.LENGTH_SHORT).show();
+//                                                                    }
+//                                                                }
+//                                                            }
+//                                                        }
+//                                                    };
+//                                                    // Register the BroadcastReceiver to listen for download completion
+//                                                    IntentFilter downloadFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+//                                                    registerReceiver(broadcastReceiver, downloadFilter);
+
+
+                                            } else {
+                                                Toast.makeText(MainActivity.this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+
+                                    dialog.dismiss();
+                                });
+                                builder.create().show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -355,6 +457,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                             Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
+            checkUpdates("1.0");
         }
     }
 
