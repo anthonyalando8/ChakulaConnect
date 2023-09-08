@@ -166,6 +166,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         });
         navigationView.setNavigationItemSelectedListener(item -> {
             drawerLayout.closeDrawer(GravityCompat.START, false);
+            if (item.getItemId() == R.id.nav_side_dashboard){
+                viewPager2Main.setCurrentItem(0);
+            }
             if(item.getItemId() == R.id.nav_side_logout){
                 FirebaseAuth.getInstance().signOut();
             }
@@ -174,7 +177,16 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 usersIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(usersIntent);
             }
-
+            if(item.getItemId() == R.id.nav_side_donate || item.getItemId() == R.id.nav_side_make_request){
+                Intent donateRequest = new Intent(this, ActivityDonationInfo.class);
+                donateRequest.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(donateRequest);
+            }
+            if(item.getItemId() == R.id.nav_side_my_donations || item.getItemId() == R.id.nav_my_side_request){
+                Intent myDonations = new Intent(this, donor_donations.class);
+                myDonations.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(myDonations);
+            }
             return false;
         });
     }
@@ -457,7 +469,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                             Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
-            checkUpdates("1.0");
+            checkUpdates("1.0.1");
         }
     }
 

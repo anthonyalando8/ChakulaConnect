@@ -36,12 +36,19 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     android:id="@+id/vp_dash_one"/>
 
+                <com.jjoe64.graphview.GraphView
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:id="@+id/graphDashboard"
+                    android:layout_marginTop="5dp"
+                    app:layout_constraintTop_toBottomOf="@id/vp_dash_one"/>
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/dashboard_section_bg"
-                    app:layout_constraintTop_toBottomOf="@id/vp_dash_one">
+                    app:layout_constraintTop_toBottomOf="@id/graphDashboard">
 
                     <TextView
                         android:layout_width="wrap_content"

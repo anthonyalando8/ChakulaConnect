@@ -46,6 +46,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
+import com.jjoe64.graphview.DefaultLabelFormatter;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 import com.squareup.picasso.Picasso;
 
 import java.time.Instant;
@@ -77,6 +81,7 @@ public class Dashboard extends Fragment {
     private int currentPage = 0;
     private Handler handler = new Handler();
     private Runnable runnable;
+    GraphView gvDashBoard;
     private final long DELAY_TIME = 3000;
     public Dashboard() {
         // Required empty public constructor
@@ -110,6 +115,43 @@ public class Dashboard extends Fragment {
         txt_btn_see_all_activity = getView().findViewById(R.id.txt_btn_see_all_activity);
         vp_dashOne = getView().findViewById(R.id.vp_dash_one);
 
+        gvDashBoard = getView().findViewById(R.id.graphDashboard);
+        // Customize X Axis
+        gvDashBoard.getGridLabelRenderer().setHorizontalLabelsColor(Color.BLACK);
+        gvDashBoard.getGridLabelRenderer().setHorizontalLabelsVisible(true);
+        gvDashBoard.getGridLabelRenderer().setHorizontalAxisTitle("Year");
+
+// Customize Y Axis
+//        gvDashBoard.getGridLabelRenderer().setVerticalLabelsColor(Color.BLACK);
+//        gvDashBoard.getGridLabelRenderer().setVerticalLabelsVisible(false);
+//        gvDashBoard.getGridLabelRenderer().setVerticalAxisTitle("Total");
+
+// Customize Graph Title
+        gvDashBoard.setTitle("Donation made in past 5 years");
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(2019, 1),
+                new DataPoint(2020, 5),
+                new DataPoint(2021, 3),
+                new DataPoint(2022, 2),
+                new DataPoint(2023, 6)
+        });
+        // Customize the X-axis label formatting
+        gvDashBoard.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                if (isValueX) {
+                    // Convert the X-axis value to the desired label
+                    // For example, you can format it as a date or any other custom format
+                    int intValue = (int) value;
+                    return String.valueOf(intValue);
+                } else {
+                    // For the Y-axis, use the default label formatting
+                    return super.formatLabel(value, isValueX);
+                }
+            }
+        });
+        gvDashBoard.setTitleColor(ResourcesCompat.getColor(getResources(), R.color.info, getContext().getTheme()));
+        gvDashBoard.addSeries(series);
 
         LinearLayoutManager layoutActivityManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -367,6 +409,7 @@ class DashUserActivityAdapter extends RecyclerView.Adapter<DashUserActivityAdapt
         }else{
             holder.txt_activityTitle.setText(userActivityModel.getActivityTitle());
             Long activityDate = userActivityModel.getActivityDate();
+
             Instant instant = Instant.ofEpochMilli(activityDate);
             LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
 

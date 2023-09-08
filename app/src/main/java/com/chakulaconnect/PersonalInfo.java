@@ -2,10 +2,12 @@ package com.chakulaconnect;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -20,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +35,17 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
     DatabaseReference databaseReference;
     EditText etPhone, etCountry, etCounty, etAddress, etMoreInfo, etCompanyName, etCity, etOtherBusiness;
     LinearLayout llOrgInfo;
+    SharedPreferences sharedPreferences;
+    Gson gson;
     Spinner spBusType;
     MaterialButton btnSave;
 
     TextView txtInfoError;
     LocationModel locationModel;
     String country = "", county = "", city = "", streetAddress = "", strLongitude = "", strLatitude = "";
+    String userData;
+    UserModel userModel;
+    Boolean isDonor = false, isRecipient=false, isOrg= false, isIndividual= false, isOtherBus = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +56,7 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
         databaseReference = FirebaseDatabase.getInstance().getReference();
+        gson = new Gson();
 
         etPhone = findViewById(R.id.etPhone);
         etCountry = findViewById(R.id.etCountry);
@@ -63,8 +72,30 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
         btnSave = findViewById(R.id.btnSave);
         txtInfoError = findViewById(R.id.txtInfoError);
 
+        llOrgInfo = findViewById(R.id.llOrganisationInfo);
+
+        setSpinnerAdapter(R.array.business_type, spBusType);
         if(isUser()){
             userId = user.getUid();
+            sharedPreferences = getSharedPreferences(userId.concat("_pref"), MODE_PRIVATE);
+            userData = sharedPreferences.getString(userId.concat("_data"), null);
+
+            if(userData != null){
+                 userModel = gson.fromJson(userData, UserModel.class);
+                if(userModel.getAccount_role().containsKey("Organisation")){
+                    isOrg = true;
+                } else if (userModel.getAccount_role().containsKey("Individual")) {
+                    isIndividual = true;
+                }
+                if(userModel.getAccount_role().containsKey("Donor")){
+                    isDonor = true;
+                }else if(userModel.getAccount_role().containsKey("Recipient")){
+                    isRecipient = true;
+                }
+            }
+
+            llOrgInfo.setVisibility((isOrg && isDonor) ? View.VISIBLE : View.GONE);
+
             LocationUtil locationUtil = new LocationUtil(this);
             locationUtil.requestLocationUpdates(new LocationUtil.LocationCallback() {
                 @Override
@@ -82,7 +113,9 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
                 BusinessType[0] = adapterView.getItemAtPosition(i).toString();
                 if(BusinessType[0].equals(bussType[bussType.length - 1])){
                     etOtherBusiness.setVisibility(View.VISIBLE);
+                    isOtherBus = true;
                 }else {
+                    isOtherBus = false;
                     etOtherBusiness.setVisibility(View.GONE);
                 }
             }
@@ -92,7 +125,7 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
 
             }
         });
-        if(BusinessType[0].equals("Other")){
+        if(isOtherBus){
             BusinessType[0] = etOtherBusiness.getText().toString().trim();
         }
         btnSave.setOnClickListener(v->{
@@ -103,16 +136,20 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
             String County = etCounty.getText().toString().trim();
             String City = etCity.getText().toString().trim();
             String CompanyName = etCompanyName.getText().toString().trim();
+            String other_bus = etOtherBusiness.getText().toString().trim();
+            String bus_type = spBusType.getSelectedItem().toString();
 
             String Address = etAddress.getText().toString().trim();
             String MoreInfo = etMoreInfo.getText().toString().trim();
-            if(validate(Phone, Country, County, Address, MoreInfo)){
+            if(validate(Phone, Country, County, City, Address, MoreInfo, CompanyName,bus_type, other_bus, isDonor, isOrg )){
                 locationModel = new LocationModel(Country, County, City, Address, strLongitude, strLatitude);
                 moreInfo.put("phone", Phone);
-                moreInfo.put("companyName", CompanyName);
-                moreInfo.put("companyBusiness", BusinessType[0]);
                 moreInfo.put("moreInfo", MoreInfo);
                 moreInfo.put("location", locationModel);
+                if (isDonor && isOrg){
+                    moreInfo.put("companyName", CompanyName);
+                    moreInfo.put("companyBusiness",BusinessType[0]);
+                }
 
                 updateUserInfo(moreInfo);
             }
@@ -156,15 +193,25 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
         });
     }
 
-    private boolean validate(String PHONE, String COUNTRY,String COUNTY,String ADDRESS,String MORE){
+    private boolean validate(String PHONE, String COUNTRY,String COUNTY,String CITY, String ADDRESS,String MORE, String COMPANY_NAME, String BUSS_TYPE, String OTHER_BUSS, Boolean isOrg, Boolean isDonor){
         if( MORE.length() > 150){
             etMoreInfo.setError("Exceeds 150 characters");
             return false;
         }
-        if(PHONE.isEmpty() | COUNTRY.isEmpty() | COUNTY.isEmpty() | ADDRESS.isEmpty()){
+        if(PHONE.isEmpty() | COUNTRY.isEmpty() | COUNTY.isEmpty() | CITY.isEmpty() | ADDRESS.isEmpty()){
             txtInfoError.setText("All non-optional fields required");
             txtInfoError.setVisibility(View.VISIBLE);
             return false;
+        }
+        if (isDonor && isOrg){
+            if(COMPANY_NAME.isEmpty()){
+                etCompanyName.setError("Required");
+                return false;
+            }
+            if (BUSS_TYPE.equals("Other") && OTHER_BUSS.isEmpty()){
+                etOtherBusiness.setError("Required");
+                return false;
+            }
         }
         txtInfoError.setVisibility(View.GONE);
         return true;
@@ -206,6 +253,13 @@ public class PersonalInfo extends AppCompatActivity implements FirebaseAuth.Auth
         etCounty.setText(strCounty);
         etCity.setText(strCity);
         etAddress.setText(strStreetAddress);
+    }
+    private void setSpinnerAdapter(int arrayValues, Spinner spinner){
+        ArrayAdapter<CharSequence> food_type_donor_adapter = ArrayAdapter.createFromResource(
+                this, arrayValues, android.R.layout.simple_spinner_item
+        );
+        food_type_donor_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(food_type_donor_adapter);
     }
 
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="5dp"
+    android:id="@+id/clMainLayout"
+    android:padding="5dp"
+    android:background="@drawable/rv_donation_bg"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/civDonationIcon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/donations"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtDonationType"
+        android:maxLines="2"
+        app:layout_constraintStart_toEndOf="@id/civDonationIcon"
+        android:textStyle="bold"
+        android:padding="5dp"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/civDonationIcon"
+        android:padding="5dp"
+        app:layout_constraintBottom_toBottomOf="@id/civDonationIcon"
+        android:id="@+id/txtDonationDateSingle"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

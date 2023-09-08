@@ -27,10 +27,10 @@
                 android:id="@+id/nav_side_donate_guide"
                 android:icon="@drawable/support"
                 android:title="Donation guidelines"/>
-            <item
-                android:id="@+id/nav_side_donation_history"
-                android:icon="@drawable/history"
-                android:title="Donation  history"/>
+<!--            <item-->
+<!--                android:id="@+id/nav_side_donation_history"-->
+<!--                android:icon="@drawable/history"-->
+<!--                android:title="Donation  history"/>-->
         </menu>
 
     </item>
@@ -40,7 +40,7 @@
         android:visible="false">
         <menu>
             <item
-                android:id="@+id/nav_side_request"
+                android:id="@+id/nav_my_side_request"
                 android:icon="@drawable/envelope_solid"
                 android:title="My requests"/>
             <item
@@ -66,14 +66,10 @@
         </menu>
 
     </item>
-    <item
-        android:id="@+id/nav_side_notification"
-        android:icon="@drawable/notifications_black"
-        android:title="Notifications"/>
-    <item
-        android:id="@+id/nav_side_manage_acc"
-        android:icon="@drawable/manage_account_black"
-        android:title="Manage account"/>
+<!--    <item-->
+<!--        android:id="@+id/nav_side_manage_acc"-->
+<!--        android:icon="@drawable/manage_account_black"-->
+<!--        android:title="Manage account"/>-->
     <item
         android:id="@+id/nav_side_feedback"
         android:icon="@drawable/feedback_black"

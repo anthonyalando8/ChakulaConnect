@@ -216,9 +216,6 @@ public class AuthSignUp extends AppCompatActivity {
                                                                                     account_role.put("complete", false);
 
                                                                                     moreInfo.put("phone", "");
-                                                                                    moreInfo.put("country", "");
-                                                                                    moreInfo.put("county", "");
-                                                                                    moreInfo.put("address", "");
                                                                                     moreInfo.put("moreInfo", "");
                                                                                     moreInfo.put("location", "");
                                                                                     HashMap<String, UserActivityModel> userActivityModelHashMap = new HashMap<>();

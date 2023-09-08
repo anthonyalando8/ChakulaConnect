@@ -5,10 +5,20 @@
     android:layout_height="match_parent"
     tools:context=".PostFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Post" />
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:foreground="?selectableItemBackground"
+        android:id="@+id/rcDonations">
+    </androidx.recyclerview.widget.RecyclerView>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="20dp"
+        android:id="@+id/fabDonateRequest"
+        android:src="@drawable/baseline_post_add_24"
+        android:backgroundTint="@color/primaryColor"/>
 
 </FrameLayout>

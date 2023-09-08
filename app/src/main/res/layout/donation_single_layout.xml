@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rv_donation_bg"
+    android:padding="5dp"
+    android:layout_marginBottom="5dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/civUserDonorImage"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:src="@drawable/user"/>
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtUserNameDonor"
+        android:paddingStart="5dp"
+        app:layout_constraintStart_toEndOf="@id/civUserDonorImage"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:maxLines="2"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtDonationDate"
+        app:layout_constraintBottom_toBottomOf="@id/civUserDonorImage"
+        app:layout_constraintStart_toEndOf="@id/civUserDonorImage"
+        android:paddingStart="5dp"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/civUserDonorImage"
+        app:layout_constraintStart_toStartOf="parent"
+        android:padding="8dp"
+        android:id="@+id/txtFoodTypeDonor"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/txtFoodTypeDonor"
+        app:layout_constraintStart_toStartOf="parent"
+        android:padding="8dp"
+        android:id="@+id/txtFoodQuantityDonor"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

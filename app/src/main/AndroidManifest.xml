@@ -24,6 +24,9 @@
         android:theme="@style/Theme.ChakulaConnect"
         tools:targetApi="31">
         <activity
+            android:name=".donor_donations"
+            android:exported="false" />
+        <activity
             android:name=".ActivityDonationInfo"
             android:exported="false" />
         <activity
@@ -74,6 +77,7 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.chakulaconnect.fileprovider"

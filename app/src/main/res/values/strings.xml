@@ -49,6 +49,9 @@
         <item>Restaurant</item>
         <item>Hotel</item>
         <item>Supermarket</item>
+        <item>NGOs</item>
+        <item>Church</item>
+        <item>School</item>
         <item>Other</item>
     </string-array>
 </resources>

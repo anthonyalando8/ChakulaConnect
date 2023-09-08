@@ -1,5 +1,6 @@
 package com.chakulaconnect;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -21,12 +22,15 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -39,6 +43,7 @@ import com.google.gson.Gson;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class ActivityDonationInfo extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
@@ -59,6 +64,9 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
     DatabaseReference databaseReference;
     StorageReference storageReference;
     String userId, userData, addressLoc = "Unknown", formatAddress = "Unknown", countyLoc = "unknown", cityLoc = "unknown";
+    String lat = "unknown", longitude = "unknown", country = "unknown";
+    DatabaseReference donationRef = FirebaseDatabase.getInstance().getReference("Donations");
+    DatabaseReference uniqueKeyDonations = donationRef.push();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +108,9 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         llPackDate = findViewById(R.id.llPackDate);
         llPickDeliveryLocation = findViewById(R.id.llPickDeliveryLocation);
 
+        btnSubmit = findViewById(R.id.btnSubmit);
+        btnCancel = findViewById(R.id.btnCancel);
+
         rgAddress = findViewById(R.id.rgPickUpPoint);
 
         if(isUser()){
@@ -132,6 +143,14 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                     getSupportActionBar().setTitle("Make request");
                     txtDonRecHead.setText("Please complete the fields below to submit your request.");
                 }
+
+                if(userModel.getMoreInfo().containsKey("location")){
+                    LocationModel locationModel = (LocationModel) userModel.getMoreInfo().get("location");
+                    lat = locationModel.getStrLatitude().toString();
+                    longitude = locationModel.getStrLongitude().toString();
+                    country = locationModel.getCountry().toString();
+                }
+
             }
 
         }
@@ -151,6 +170,51 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
             }else {
                 collapse(llDonorOptional);
             }
+        });
+
+        btnSubmit.setOnClickListener(v->{
+            if(isDonor){
+                String foodTypeDonor = spFoodTypeDonor.getSelectedItem().toString();
+                String packDate = etPackDate.getText().toString();
+                String expiry = etExpiryDate.getText().toString();
+                String quantity = etFoodQuantityDonor.getText().toString();
+                String quality = spQuality.getSelectedItem().toString();
+                String packaging = spPackaging.getSelectedItem().toString();
+                String county = etPickDeliveryCounty.getText().toString();
+                String city = etPickDeliveryTown.getText().toString();
+                String address = etAddress.getText().toString();
+                String stCond = etStorageConditions.getText().toString();
+                String hand = etHandlingInst.getText().toString();
+                String special = etSpecialConsiderations.getText().toString();
+                String donor = isUser() ? user.getUid() : "";
+
+                String[] foodTypeArray = getResources().getStringArray(R.array.food_type_donor_array);
+                LocationModel locationModel = new LocationModel(country, county, city, address, longitude,lat);
+                HashMap<String, Object> foodDetails = new HashMap<>();
+                foodDetails.put("foodType", foodTypeDonor);
+                if(foodTypeDonor.equals(foodTypeArray[1])){
+                    foodDetails.put("packDate", packDate);
+                }
+                foodDetails.put("expiry", expiry);
+                foodDetails.put("quantity", quantity);
+                foodDetails.put("quality", quality);
+                foodDetails.put("packaging", packaging);
+
+                HashMap<String, Object> storageHand = new HashMap<>();
+                storageHand.put("storageConditions", stCond);
+                storageHand.put("handlingInstructions", hand);
+                storageHand.put("specialConsiderations", special);
+                HashMap<String, LocationModel> locationModelHashMap = new HashMap<>();
+                locationModelHashMap.put("location", locationModel);
+                if(validate(foodTypeDonor, packDate, expiry,quantity, quality, packaging, county, city, address)){
+                    DonationModel donationModel = new DonationModel(foodDetails, storageHand, locationModelHashMap, donor, uniqueKeyDonations.toString(), Long.toString(System.currentTimeMillis()));
+                    submitData(donationModel);
+                }
+            }
+
+        });
+        btnCancel.setOnClickListener(v->{
+            onBackPressed();
         });
         KeyListener etAddressKey = etAddress.getKeyListener();
         rgAddress.setOnCheckedChangeListener((radioGroup, i) -> {
@@ -334,5 +398,43 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
 
         animation.setDuration((int) (initialHeight / view.getContext().getResources().getDisplayMetrics().density));
         view.startAnimation(animation);
+    }
+    private boolean validate(String foodType, String prepDate, String expiry, String quantity, String quality, String packaging, String county, String City, String address){
+        String [] foodTypeDonor  = getResources().getStringArray(R.array.food_type_donor_array);
+        String[] foodQuality = getResources().getStringArray(R.array.food_quality);
+        if(foodType.isEmpty() || expiry.isEmpty() || quantity.isEmpty() || quality.isEmpty() || packaging.isEmpty() || county.isEmpty() || City.isEmpty() || address.isEmpty()){
+            return false;
+        }
+        if(foodType.equals(foodTypeDonor[0])){
+            return false;
+        }
+        if(foodType.equals(foodTypeDonor[1]) && prepDate.isEmpty()){
+            return  false;
+        }
+        if(quality.equals(foodQuality[0])){
+            return false;
+        }
+        return true;
+    }
+
+    private void submitData(DonationModel donationModel){
+        AlertDialog alertDialog = Progress.createAlertDialog(this, "Please wait...");
+        alertDialog.show();
+        uniqueKeyDonations.setValue(donationModel).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    alertDialog.dismiss();
+                    Toast.makeText(ActivityDonationInfo.this, "Successful", Toast.LENGTH_SHORT).show();
+                    Intent mainActivity = new Intent(ActivityDonationInfo.this, MainActivity.class);
+                    mainActivity.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(mainActivity);
+                }
+            }
+        }).addOnFailureListener(e->{
+            alertDialog.dismiss();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+
+        });
     }
 }
