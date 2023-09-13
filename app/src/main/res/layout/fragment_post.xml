@@ -1,24 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.ChakulaConnect"
+    android:background="?attr/colorPrimaryVariant"
     tools:context=".PostFragment">
-
-    <androidx.recyclerview.widget.RecyclerView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:foreground="?selectableItemBackground"
-        android:id="@+id/rcDonations">
-    </androidx.recyclerview.widget.RecyclerView>
+        android:layout_height="match_parent">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:padding="5dp"
+                android:id="@+id/llPostCritical">
+                <LinearLayout
+                    android:layout_width="76dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="5dp"
+                    android:id="@+id/llNew"
+                    android:background="@drawable/dashboard_section_bg"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:adjustViewBounds="true"
+                        android:src="@drawable/critical"
+                        android:id="@+id/ivNew"
+                        android:background="@drawable/rounded_image"
+                        android:scaleType="centerCrop"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="What's new"
+                        android:id="@+id/llNewLbl"
+                        android:textAlignment="center"
+                        android:textStyle="bold"
+                        android:padding="5dp"/>
+                </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="5dp"
+                    android:layout_margin="5dp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    android:orientation="horizontal"
+                    android:id="@+id/rvCriticalDonRequest"/>
+
+            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:layout_below="@id/llPostCritical"
+                android:foreground="?selectableItemBackground"
+                android:id="@+id/rcDonations">
+            </androidx.recyclerview.widget.RecyclerView>
+        </RelativeLayout>
+        </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
         android:id="@+id/fabDonateRequest"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
         android:src="@drawable/baseline_post_add_24"
         android:backgroundTint="@color/primaryColor"/>
 
-</FrameLayout>
+</RelativeLayout>

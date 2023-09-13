@@ -4,7 +4,6 @@
     android:layout_height="wrap_content"
     android:padding="5dp"
     android:theme="@style/Theme.ChakulaConnect"
-    android:background="@drawable/shadow_bg"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.constraintlayout.widget.ConstraintLayout

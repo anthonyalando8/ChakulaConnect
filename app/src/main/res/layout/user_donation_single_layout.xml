@@ -5,6 +5,7 @@
     android:layout_marginTop="5dp"
     android:id="@+id/clMainLayout"
     android:padding="5dp"
+    android:theme="@style/Theme.ChakulaConnect"
     android:background="@drawable/rv_donation_bg"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 

@@ -3,12 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@style/Theme.ChakulaConnect"
+    android:background="?attr/colorPrimaryVariant"
     tools:context=".MessagesFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Messages" />
-
+        android:id="@+id/rvChatList"/>
 </FrameLayout>

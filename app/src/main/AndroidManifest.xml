@@ -24,6 +24,9 @@
         android:theme="@style/Theme.ChakulaConnect"
         tools:targetApi="31">
         <activity
+            android:name=".ActivityAboutUs"
+            android:exported="false" />
+        <activity
             android:name=".donor_donations"
             android:exported="false" />
         <activity

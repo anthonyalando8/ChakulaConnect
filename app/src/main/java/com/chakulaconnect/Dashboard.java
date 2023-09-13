@@ -2,6 +2,7 @@ package com.chakulaconnect;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,20 +45,27 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.squareup.picasso.Picasso;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -65,7 +74,7 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class Dashboard extends Fragment {
+public class Dashboard extends Fragment implements FirebaseAuth.AuthStateListener {
     private ArrayList<DashOneModel> dashOneModels;
     private ArrayList<UserActivityModel> userActivityModels;
     private  DashUserActivityAdapter dashUserActivityAdapter;
@@ -83,6 +92,12 @@ public class Dashboard extends Fragment {
     private Runnable runnable;
     GraphView gvDashBoard;
     private final long DELAY_TIME = 3000;
+    int totalDonations = 0, myTotalDonations = 0;
+    LinearLayout llTotalDonations, llMyDonReq;
+
+    TextView lblTotalDonations, lblMyTotalDonations, txtMyTotalDonationRequest;
+    ValueEventListener donationNodeListener;
+    DatabaseReference donationsRef;
     public Dashboard() {
         // Required empty public constructor
     }
@@ -94,6 +109,7 @@ public class Dashboard extends Fragment {
         user = auth.getCurrentUser();
         gson = new Gson();
         databaseReference = FirebaseDatabase.getInstance().getReference();
+        donationsRef = databaseReference.child("Donations");
         if(isUser()){
             sharedPreferences = getActivity().getSharedPreferences(user.getUid()+"_pref", Context.MODE_PRIVATE);
             userData = sharedPreferences.getString(user.getUid()+"_data", null);
@@ -114,27 +130,30 @@ public class Dashboard extends Fragment {
         rvActivity = getView().findViewById(R.id.rv_activity);
         txt_btn_see_all_activity = getView().findViewById(R.id.txt_btn_see_all_activity);
         vp_dashOne = getView().findViewById(R.id.vp_dash_one);
+        txtMyTotalDonationRequest = getView().findViewById(R.id.txtMyTotalDonateRequest);
+        lblMyTotalDonations = getView().findViewById(R.id.lblMyTotalDonateRequest);
+        lblTotalDonations = getView().findViewById(R.id.lblTotalDonations);
+
+        llTotalDonations = getView().findViewById(R.id.llTotalDonations);
+        llMyDonReq = getView().findViewById(R.id.llMyDonationsRequest);
+
+        if(userData != null){
+            UserModel userModel = gson.fromJson(userData, UserModel.class);
+            if(userModel.getAccount_role().containsKey("Donor")){
+                txtMyTotalDonationRequest.setText("My donations");
+            }else {
+                txtMyTotalDonationRequest.setText("My requests");
+            }
+        }
 
         gvDashBoard = getView().findViewById(R.id.graphDashboard);
         // Customize X Axis
         gvDashBoard.getGridLabelRenderer().setHorizontalLabelsColor(Color.BLACK);
         gvDashBoard.getGridLabelRenderer().setHorizontalLabelsVisible(true);
-        gvDashBoard.getGridLabelRenderer().setHorizontalAxisTitle("Year");
+        gvDashBoard.getGridLabelRenderer().setHorizontalAxisTitle("Date of month");
 
-// Customize Y Axis
-//        gvDashBoard.getGridLabelRenderer().setVerticalLabelsColor(Color.BLACK);
-//        gvDashBoard.getGridLabelRenderer().setVerticalLabelsVisible(false);
-//        gvDashBoard.getGridLabelRenderer().setVerticalAxisTitle("Total");
-
-// Customize Graph Title
-        gvDashBoard.setTitle("Donation made in past 5 years");
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
-                new DataPoint(2019, 1),
-                new DataPoint(2020, 5),
-                new DataPoint(2021, 3),
-                new DataPoint(2022, 2),
-                new DataPoint(2023, 6)
-        });
+        gvDashBoard.setTitle("Donation made in past 5 days");
+        retrieveDonations();
         // Customize the X-axis label formatting
         gvDashBoard.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
             @Override
@@ -151,7 +170,6 @@ public class Dashboard extends Fragment {
             }
         });
         gvDashBoard.setTitleColor(ResourcesCompat.getColor(getResources(), R.color.info, getContext().getTheme()));
-        gvDashBoard.addSeries(series);
 
         LinearLayoutManager layoutActivityManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -170,6 +188,11 @@ public class Dashboard extends Fragment {
         if(isUser()){
             retrieveUserActivity();
         }
+        llMyDonReq.setOnClickListener(v->{
+            Intent donationReq = new Intent(getContext(), donor_donations.class);
+            donationReq.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(donationReq);
+        });
     }
 
     @Override
@@ -238,6 +261,90 @@ public class Dashboard extends Fragment {
             dashUserActivityAdapter.notifyDataSetChanged();
         }
     }
+    private void retrieveDonations(){
+        if(isUser()){
+            donationNodeListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        int totalDonations = (int) snapshot.getChildrenCount();
+                        int myTotalDonations = 0;
+                        Map<Integer, Integer> dataMap = new HashMap<>();
+                        Calendar currentDate = Calendar.getInstance();
+                        for (int i = 0; i <= 4; i++) {
+                            int year = currentDate.get(Calendar.DAY_OF_MONTH) - i;
+                            dataMap.put(year, 0);
+                        }
+
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            DonationModel donationModel = dataSnapshot.getValue(DonationModel.class);
+                            if (donationModel != null && donationModel.getDonor().equals(user.getUid())) {
+                                myTotalDonations++;
+                            }
+                            String strDonationDate = donationModel.getDonationDate();
+                            Long donationDate = Long.parseLong(strDonationDate);
+                            Instant instant = Instant.ofEpochMilli(donationDate);
+                            Calendar minYear = Calendar.getInstance();
+                            minYear.add(Calendar.YEAR, -5);
+                            minYear.add(Calendar.DAY_OF_MONTH, -5);
+                            int currentYear = currentDate.get(Calendar.YEAR);
+
+                            // Convert the Instant to a YearMonth
+                            YearMonth yearMonth = YearMonth.from(instant.atZone(ZoneId.systemDefault()));
+                            MonthDay monthDay = MonthDay.from(instant.atZone(ZoneId.systemDefault()));
+                            int day = monthDay.getDayOfMonth();
+
+
+                            // Extract the year and month
+                            int year = yearMonth.getYear();
+                            //int month = yearMonth.getMonthValue();
+//                        if (year > minYear.get(Calendar.YEAR)) {
+//                            dataMap.put(year, dataMap.get(year) + 1);
+//                        }
+                            if (day > minYear.get(Calendar.DAY_OF_MONTH)) {
+                                dataMap.put(day, dataMap.get(day) + 1);
+                            }
+                        }
+
+                        lblTotalDonations.setText(String.valueOf(totalDonations));
+                        lblMyTotalDonations.setText(String.valueOf(myTotalDonations));
+
+                        // Convert the HashMap data to an array of DataPoint
+                        DataPoint[] dataPoints = new DataPoint[dataMap.size()];
+                        int index = 0;
+                        for (Map.Entry<Integer, Integer> entry : dataMap.entrySet()) {
+                            int year = entry.getKey();
+                            int value = entry.getValue();
+                            dataPoints[index] = new DataPoint(year, value);
+                            index++;
+                        }
+
+                        //LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+                        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
+                        series.setSpacing(10);
+                        gvDashBoard.addSeries(series);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    //Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            };
+            donationsRef.addValueEventListener(donationNodeListener);
+        }
+
+
+    }
+
+//    @Override
+//    public void onStop() {
+//        super.onStop();
+//        if(donationsRef != null){
+//            donationsRef.removeEventListener(donationNodeListener);
+//        }
+//    }
+
     public  boolean isUser(){
         if(user != null){
             return true;
@@ -245,6 +352,16 @@ public class Dashboard extends Fragment {
         return false;
     }
 
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        if(firebaseAuth.getCurrentUser() != null){
+            //Some
+        }else {
+            if(donationsRef != null){
+                donationsRef.removeEventListener(donationNodeListener);
+            }
+        }
+    }
 }
 
 class DashOneAdapter extends RecyclerView.Adapter<DashOneAdapter.DashOneHolder> {

@@ -5,8 +5,10 @@ import java.util.HashMap;
 public class DonationModel {
     HashMap<String, Object> foodDetails;
     HashMap<String, Object> storageHand;
-    HashMap<String, LocationModel> location;
+    HashMap<String, String> imagesUri;
+    LocationModel location;
     String donor;
+    String reference;
 
     public String getDonationDate() {
         return donationDate;
@@ -36,16 +38,43 @@ public class DonationModel {
         this.donor = donor;
     }
 
-    public DonationModel(HashMap<String, Object> foodDetails, HashMap<String, Object> storageHand, HashMap<String, LocationModel> location, String donor, String donationId, String donationDate) {
+    public LocationModel getLocation() {
+        return location;
+    }
+
+    public void setLocation(LocationModel location) {
+        this.location = location;
+    }
+
+    public HashMap<String, String> getImagesUri() {
+        return imagesUri;
+    }
+
+    public void setImagesUri(HashMap<String, String> imagesUri) {
+        this.imagesUri = imagesUri;
+    }
+
+    public DonationModel(HashMap<String, Object> foodDetails, HashMap<String, Object> storageHand, LocationModel location, String donor,
+                         String donationId, String donationDate, HashMap<String, String > imagesUri, String reference) {
         this.foodDetails = foodDetails;
         this.storageHand = storageHand;
         this.location = location;
         this.donor = donor;
         this.donationId = donationId;
         this.donationDate = donationDate;
+        this.imagesUri = imagesUri;
+        this.reference = reference;
     }
     public DonationModel(){
         //Required
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
     public HashMap<String, Object> getFoodDetails() {
@@ -62,13 +91,5 @@ public class DonationModel {
 
     public void setStorageHand(HashMap<String, Object> storageHand) {
         this.storageHand = storageHand;
-    }
-
-    public HashMap<String, LocationModel> getLocation() {
-        return location;
-    }
-
-    public void setLocation(HashMap<String, LocationModel> location) {
-        this.location = location;
     }
 }

@@ -24,6 +24,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -35,8 +36,9 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
     ConstraintLayout clAccDetails, clPersonInfo, clIsUser;
     FirebaseAuth auth;
     FirebaseUser user;
+    Gson gson;
     DatabaseReference databaseReference;
-    String userName, userEmail, imageUri, userId, role, entityType;
+    String userName, userData, userEmail, imageUri, userId, role, entityType;
     Long joinDate;
     SharedPreferences sharedPreferences;
     MaterialButton btn_create_post, btn_edit_profile;
@@ -51,6 +53,7 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
 
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
+        gson = new Gson();
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
         civUserImage = findViewById(R.id.civUserImage);
@@ -86,12 +89,17 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
                     if(getSupportActionBar() !=  null){
                         getSupportActionBar().setTitle("My profile");
                     }
+
                     clIsUser.setVisibility(View.VISIBLE);
                     userName = user.getDisplayName();
                     userEmail = user.getEmail();
                     imageUri = user.getPhotoUrl().toString();
                     sharedPreferences = getSharedPreferences(userId + "_pref", MODE_PRIVATE);
-
+                    userData = sharedPreferences.getString(user.getUid()+"_data", null);
+                    if(userData != null){
+                        UserModel userModel = gson.fromJson(userData, UserModel.class);
+                        btn_create_post.setText(userModel.getAccount_role().containsKey("Donor") ? "Donate" : "Make request");
+                    }
                 }else{
                     if(getSupportActionBar() !=  null){
                         getSupportActionBar().setTitle(userName);
@@ -102,8 +110,12 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
                 retrievePersonalInfo(userId);
             }
 
-
         }
+        btn_create_post.setOnClickListener(v->{
+            Intent donateRequest = new Intent(this, ActivityDonationInfo.class);
+            donateRequest.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(donateRequest);
+        });
         btnAccountDetails.setOnClickListener(v->{
             animateLayoutChange(clPersonInfo, clAccDetails);
         });
@@ -156,11 +168,14 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
                             DataSnapshot snapshot = task.getResult();
 
                             UserModel userModel = snapshot.getValue(UserModel.class);
+                            //Object locationObj = userModel.getMoreInfo().get("location");
+                            LocationModel locationModel = snapshot.child("moreInfo").child("location").getValue(LocationModel.class);
                             txtPhone.setText(userModel.getMoreInfo().get("phone").toString());
-                            txtAddress.setText(userModel.getMoreInfo().get("address").toString());
-                            txtCountry.setText(userModel.getMoreInfo().get("country").toString());
-                            txtRegion.setText(userModel.getMoreInfo().get("county").toString());
+                            txtAddress.setText(locationModel.getStreetAddress());
+                            txtCountry.setText(locationModel.getCountry());
+                            txtRegion.setText(locationModel.getCounty());
                             txtMoreInfo.setText(userModel.getMoreInfo().get("moreInfo").toString());
+
 
                             if(snapshot.child("account_role").hasChild("Donor")){
                                 role = "Donor";

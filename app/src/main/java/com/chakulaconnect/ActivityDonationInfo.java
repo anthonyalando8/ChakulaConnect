@@ -1,14 +1,14 @@
 package com.chakulaconnect;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.method.KeyListener;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +17,8 @@ import android.view.animation.Transformation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
@@ -25,10 +27,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
@@ -38,13 +42,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class ActivityDonationInfo extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
 
@@ -56,6 +62,9 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
     ConstraintLayout clMakeRequest,clDonate;
     TextView txtDonRecHead, txtAddressLbl;
     LinearLayout llExpandCollapse, llDonorOptional, llPackDate, llPickDeliveryLocation;
+    FlexboxLayout fbAddPhoto;
+    ImageUtil imageUtil;
+    ImageButton ibAddPhoto;
     Boolean isDonor = false, isRecipient = false;
     Gson gson;
     SharedPreferences sharedPreferences;
@@ -63,10 +72,18 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
     FirebaseUser user;
     DatabaseReference databaseReference;
     StorageReference storageReference;
-    String userId, userData, addressLoc = "Unknown", formatAddress = "Unknown", countyLoc = "unknown", cityLoc = "unknown";
+    String userId, userData, addressLoc = "Unknown", formatAddress = "Unknown", countyLoc = "Unknown", cityLoc = "Unknown", cityDefault = "Unknown"
+            ,countyDefault = "Unknown";
     String lat = "unknown", longitude = "unknown", country = "unknown";
     DatabaseReference donationRef = FirebaseDatabase.getInstance().getReference("Donations");
     DatabaseReference uniqueKeyDonations = donationRef.push();
+    DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("DonationRequest");
+    DatabaseReference uniqueKeyRequest = requestRef.push();
+    DatabaseReference notificationRef = FirebaseDatabase.getInstance().getReference("Notifications");
+    DatabaseReference notifyUniqueKey = notificationRef.push();
+    ArrayList<byte[]> imageBytes;
+    HashMap<String, String> imagesUri;
+    AlertDialog alertDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +94,11 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         user = auth.getCurrentUser();
         databaseReference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
+        alertDialog = Progress.createAlertDialog(this, "Please wait...");
+
+        imageUtil = new ImageUtil(this, this, 80);
+        imageBytes = new ArrayList<byte[]>();
+        imagesUri = new HashMap<>();
 
         spFoodTypeDonor = findViewById(R.id.spFoodType);
         spFoodTypeRecipient = findViewById(R.id.spFoodTypeRecipient);
@@ -108,6 +130,10 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         llPackDate = findViewById(R.id.llPackDate);
         llPickDeliveryLocation = findViewById(R.id.llPickDeliveryLocation);
 
+        fbAddPhoto = findViewById(R.id.fbAttachImage);
+
+        ibAddPhoto = findViewById(R.id.ibAddPhoto);
+
         btnSubmit = findViewById(R.id.btnSubmit);
         btnCancel = findViewById(R.id.btnCancel);
 
@@ -117,6 +143,7 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
             userId = user.getUid();
             sharedPreferences = getSharedPreferences(userId+"_pref", MODE_PRIVATE);
             userData = sharedPreferences.getString(userId+"_data", null);
+
             LocationUtil locationUtil = new LocationUtil(this);
             locationUtil.requestLocationUpdates(new LocationUtil.LocationCallback() {
                 @Override
@@ -129,7 +156,27 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
 
             if(userData != null){
                 UserModel userModel = gson.fromJson(userData, UserModel.class);
-                addressLoc = userModel.getMoreInfo().get("address").toString();
+                Object locationObj = userModel.getMoreInfo().get("location");
+
+                if (locationObj != null) {
+                    // Check the type or structure of locationObj and access its values accordingly
+                    if (locationObj instanceof Map) {
+                        Map<String, String > locationMap = (Map<String, String>) locationObj;
+                        // Handle latitude and longitude as needed
+                        addressLoc = locationMap.get("streetAddress").toString();
+                        lat = locationMap.get("strLatitude").toString();
+                        longitude = locationMap.get("strLongitude").toString();
+                        country = locationMap.get("country").toString();
+                        countyDefault = locationMap.get("county").toString();
+                        cityDefault = locationMap.get("city").toString();
+                    } else {
+                        // Handle other types or structures of locationObj
+                    }
+                } else {
+                    // Handle the case where locationObj is null
+                }
+
+
                 if(userModel.getAccount_role().containsKey("Donor")){
                     isDonor = true;
                     clDonate.setVisibility(View.VISIBLE);
@@ -142,13 +189,6 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                     clMakeRequest.setVisibility(View.VISIBLE);
                     getSupportActionBar().setTitle("Make request");
                     txtDonRecHead.setText("Please complete the fields below to submit your request.");
-                }
-
-                if(userModel.getMoreInfo().containsKey("location")){
-                    LocationModel locationModel = (LocationModel) userModel.getMoreInfo().get("location");
-                    lat = locationModel.getStrLatitude().toString();
-                    longitude = locationModel.getStrLongitude().toString();
-                    country = locationModel.getCountry().toString();
                 }
 
             }
@@ -164,6 +204,13 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         setSpinnerAdapter(R.array.food_urgency, spFoodUrgency);
         setSpinnerAdapter(R.array.food_type_recipient, spFoodTypeRecipient);
 
+        ibAddPhoto.setOnClickListener(v->{
+            if(fbAddPhoto.getChildCount() >= 5){
+                Toast.makeText(this, "Maximum number of images is 4", Toast.LENGTH_SHORT).show();
+            }else {
+                imageUtil.createImageDialog();
+            }
+        });
         llExpandCollapse.setOnClickListener(V->{
             if(llDonorOptional.getVisibility() == View.GONE){
                 expand(llDonorOptional);
@@ -204,11 +251,51 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                 storageHand.put("storageConditions", stCond);
                 storageHand.put("handlingInstructions", hand);
                 storageHand.put("specialConsiderations", special);
-                HashMap<String, LocationModel> locationModelHashMap = new HashMap<>();
-                locationModelHashMap.put("location", locationModel);
-                if(validate(foodTypeDonor, packDate, expiry,quantity, quality, packaging, county, city, address)){
-                    DonationModel donationModel = new DonationModel(foodDetails, storageHand, locationModelHashMap, donor, uniqueKeyDonations.toString(), Long.toString(System.currentTimeMillis()));
-                    submitData(donationModel);
+                if(validateDonorInfo(foodTypeDonor, packDate, expiry,quantity, quality, packaging, county, city, address)){
+                    DonationModel donationModel = new DonationModel(foodDetails, storageHand, locationModel, donor, uniqueKeyDonations.getKey(),
+                            Long.toString(System.currentTimeMillis()), imagesUri, uniqueKeyDonations.toString());
+                    if(imageBytes.isEmpty()){
+                        submitData(donationModel, alertDialog);
+                    }else {
+                        for(int i = 0; i < imageBytes.size(); i++){
+                            byte[] byteArray = imageBytes.get(i);
+                            String imageName = "image" + i;
+                            uploadImage(storageReference.child("Donations/"+uniqueKeyDonations.getKey()+"/images/"+imageName)
+                                    , byteArray, imageName, donationModel, alertDialog);
+                        }
+                    }
+
+                }
+            } else if (isRecipient) {
+                String foodType = spFoodTypeRecipient.getSelectedItem().toString();
+                String quantity = etFoodQuantityRecipient.getText().toString();
+                String urgency = spFoodUrgency.getSelectedItem().toString();
+                String county = etPickDeliveryCounty.getText().toString();
+                String city = etPickDeliveryTown.getText().toString();
+                String address = etAddress.getText().toString();
+                if(validateRequestInfo(foodType, quantity, urgency,county,city,address)){
+                    LocationModel locationModel = new LocationModel(country, county, city, address, longitude,lat);
+                    HashMap<String, Object> foodDetails = new HashMap<>();
+                    foodDetails.put("foodType", foodType);
+                    foodDetails.put("quantity", quantity);
+                    foodDetails.put("urgency", urgency);
+
+                    HashMap<String, LocationModel> locationModelHashMap = new HashMap<>();
+                    locationModelHashMap.put("location", locationModel);
+                    DonationRequestModel donationRequestModel = new DonationRequestModel(foodDetails, locationModel, isUser() ? user.getUid() : "",
+                            uniqueKeyRequest.getKey(), Long.toString(System.currentTimeMillis()), imagesUri, uniqueKeyRequest.toString());
+
+                    if(imageBytes.isEmpty()){
+                        submitDonationRequest(donationRequestModel, alertDialog);
+                    }else {
+                        for(int i = 0; i < imageBytes.size(); i++){
+                            byte[] byteArray = imageBytes.get(i);
+                            String imageName = "image" + i;
+                            uploadImage(storageReference.child("DonationRequests/"+uniqueKeyRequest.getKey()+"/Images/"+imageName)
+                            , byteArray,imageName, donationRequestModel, alertDialog);
+                        }
+                    }
+
                 }
             }
 
@@ -223,6 +310,8 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
             switch (i){
                 case R.id.rbDefaultAddress:{
                     etAddress.setText(addressLoc);
+                    etPickDeliveryTown.setText(cityDefault);
+                    etPickDeliveryCounty.setText(countyDefault);
                     disableViews(null);
                     break;
                 }
@@ -252,6 +341,32 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
 
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == imageUtil.REQUEST_CAPTURE || requestCode == imageUtil.REQUEST_GALLERY_PICK){
+            byte[] byteArray = imageUtil.handleImageActivityResult(this, requestCode, resultCode, data);
+            if(data != null){
+                imageBytes.add(byteArray);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                ImageView addedPhoto = new ImageView(this);
+                addedPhoto.setScaleType(ImageView.ScaleType.FIT_XY);
+                //addedPhoto.setAdjustViewBounds(true);
+                addedPhoto.setImageBitmap(bitmap);
+                FlexboxLayout.LayoutParams layoutParams1 = new FlexboxLayout.LayoutParams(
+                        60, // Width
+                        70  // Height
+                );
+                layoutParams1.setMargins(2,2,2,2);
+                addedPhoto.setLayoutParams(layoutParams1);
+
+                fbAddPhoto.addView(addedPhoto, fbAddPhoto.getChildCount() - 1);
+            }else {
+                Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override
@@ -399,7 +514,7 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         animation.setDuration((int) (initialHeight / view.getContext().getResources().getDisplayMetrics().density));
         view.startAnimation(animation);
     }
-    private boolean validate(String foodType, String prepDate, String expiry, String quantity, String quality, String packaging, String county, String City, String address){
+    private boolean validateDonorInfo(String foodType, String prepDate, String expiry, String quantity, String quality, String packaging, String county, String City, String address){
         String [] foodTypeDonor  = getResources().getStringArray(R.array.food_type_donor_array);
         String[] foodQuality = getResources().getStringArray(R.array.food_quality);
         if(foodType.isEmpty() || expiry.isEmpty() || quantity.isEmpty() || quality.isEmpty() || packaging.isEmpty() || county.isEmpty() || City.isEmpty() || address.isEmpty()){
@@ -417,15 +532,101 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         return true;
     }
 
-    private void submitData(DonationModel donationModel){
-        AlertDialog alertDialog = Progress.createAlertDialog(this, "Please wait...");
+    private boolean validateRequestInfo(String foodType, String quantity, String urgency, String country, String city, String address){
+        if(foodType.isEmpty() || quantity.isEmpty() || urgency.isEmpty() || country.isEmpty() || city.isEmpty() || address.isEmpty()){
+            return false;
+        }
+        String[] arr_urgency = getResources().getStringArray(R.array.food_urgency);
+        if (urgency.equals(arr_urgency[0])){
+            return false;
+        }
+        return true;
+    }
+
+    private void submitData(DonationModel donationModel, AlertDialog alertDialog){
         alertDialog.show();
         uniqueKeyDonations.setValue(donationModel).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
+                    Toast.makeText(ActivityDonationInfo.this, "Finalizing", Toast.LENGTH_SHORT).show();
+                    DatabaseReference activityRef = FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("activity");
+                    activityRef.child(donationModel.getDonationDate())
+                            .setValue(new UserActivityModel("Donated product", donationModel.getFoodDetails().get("foodType").toString(),
+                                    user.getUid(), donationModel.getDonationDate(), Long.parseLong(donationModel.getDonationDate())))
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful()){
+                                        HashMap<String, String> flags = new HashMap<>();
+                                        flags.put("Entity", "All");
+                                        flags.put("Role", "Recipient");
+                                        NotificationModel notificationModel = new NotificationModel(donationModel.getDonationDate(),
+                                                user.getDisplayName().concat(" is donating."), notifyUniqueKey.toString(),
+                                                "Products: ".concat(donationModel.getFoodDetails().get("foodType").toString()),user.getPhotoUrl().toString(),flags,
+                                                user.getUid(), uniqueKeyDonations.toString()
+                                        );
+                                        submitNotification(alertDialog, notificationModel);
+                                    }
+                                }
+                            }).addOnFailureListener(e->{
+                                alertDialog.dismiss();
+                                Toast.makeText(ActivityDonationInfo.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+
+                }
+            }
+        }).addOnFailureListener(e->{
+            alertDialog.dismiss();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+
+        });
+    }
+
+    private void submitDonationRequest(DonationRequestModel donationRequestModel, AlertDialog alertDialog){
+        alertDialog.show();
+        uniqueKeyRequest.setValue(donationRequestModel).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(ActivityDonationInfo.this, "Submitted", Toast.LENGTH_SHORT).show();
+                    HashMap<String, String> flags = new HashMap<>();
+                    flags.put("Entity", "All");
+                    flags.put("Role", "Donor");
+                    NotificationModel notificationModel = new NotificationModel(donationRequestModel.getRequestDate(),
+                            user.getDisplayName().concat(" is requesting for donation"), notifyUniqueKey.toString(),
+                            "Required product: ".concat(donationRequestModel.getFoodDetails().get("foodType").toString()),user.getPhotoUrl().toString(),flags,
+                            user.getUid(), uniqueKeyRequest.toString()
+                            );
+                    DatabaseReference activityRef = FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("activity");
+                    activityRef.child(donationRequestModel.getRequestDate())
+                            .setValue(new UserActivityModel("Requested donation", donationRequestModel.getFoodDetails().get("foodType").toString(),
+                                    user.getUid(), donationRequestModel.getRequestDate(), Long.parseLong(donationRequestModel.getRequestDate())))
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()){
+                                                submitNotification(alertDialog, notificationModel);
+                                            }
+                                        }
+                                    }).addOnFailureListener(e->{
+                                Toast.makeText(ActivityDonationInfo.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        alertDialog.dismiss();
+                            });
+
+                }
+            }
+        }).addOnFailureListener(e->{
+            alertDialog.dismiss();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+    private void submitNotification(AlertDialog alertDialog,NotificationModel notificationModel){
+        notifyUniqueKey.setValue(notificationModel).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
                     alertDialog.dismiss();
-                    Toast.makeText(ActivityDonationInfo.this, "Successful", Toast.LENGTH_SHORT).show();
                     Intent mainActivity = new Intent(ActivityDonationInfo.this, MainActivity.class);
                     mainActivity.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(mainActivity);
@@ -433,8 +634,32 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
             }
         }).addOnFailureListener(e->{
             alertDialog.dismiss();
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(ActivityDonationInfo.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+    private void uploadImage(StorageReference storageReference, byte[] bytes, String imageName, Object data, AlertDialog alertDialog){
+        alertDialog.show();
+        UploadTask uploadTask = storageReference.putBytes(bytes);
+        uploadTask.addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+            String imageUri = uri.toString();
 
+            imagesUri.put(imageName, imageUri);
+
+            if(imageBytes.size() == imagesUri.size()){
+                if(data instanceof DonationModel){
+                    DonationModel donationModel = (DonationModel) data;
+                    donationModel.setImagesUri(imagesUri);
+                    submitData(donationModel, alertDialog);
+                } else if (data instanceof DonationRequestModel) {
+                    DonationRequestModel donationRequestModel = (DonationRequestModel) data;
+                    donationRequestModel.setImagesUri(imagesUri);
+                    submitDonationRequest(donationRequestModel, alertDialog);
+                }
+            }
+        }).addOnFailureListener(e->{
+            Toast.makeText(ActivityDonationInfo.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        })).addOnFailureListener(e->{
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 }

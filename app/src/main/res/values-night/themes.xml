@@ -3,14 +3,14 @@
     <style name="Theme.ChakulaConnect" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primaryDark</item>
-        <item name="colorPrimaryVariant">@color/primaryDark</item>
-        <item name="colorOnPrimary">@color/primaryDark</item>
+        <item name="colorPrimaryVariant">#333333</item>
+        <item name="colorOnPrimary">@color/primaryDarkLight</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/black</item>
+        <item name="colorSecondary">@color/primaryDarkLighter</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
         <!-- Customize your theme here. -->
         <item name="homeAsUpIndicator">@drawable/custom_back_icon</item>
         <item name="android:textColor">@color/LightGrey</item>

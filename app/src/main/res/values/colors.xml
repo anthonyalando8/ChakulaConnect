@@ -11,6 +11,8 @@
     <color name="LightGray">#EDEDED</color>
     <color name="primaryColor">#F58634</color>
     <color name="primaryDark">#1E1E1E</color>
+    <color name="primaryDarkLight">#393939</color>
+    <color name="primaryDarkLighter">#4C4C4C</color>
     <color name="red">#FF0000</color>
     <color name="success">#198754</color>
     <color name="info">#0dcaf0</color>

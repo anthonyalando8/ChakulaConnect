@@ -110,6 +110,7 @@
                 app:layout_constraintStart_toStartOf="@id/btnGoogleLogin"
                 app:layout_constraintBottom_toBottomOf="@id/btnGoogleLogin"
                 android:layout_marginStart="10dp"
+                android:visibility="gone"
                 android:src="@drawable/google"
                 android:contentDescription="Google Icon" />
             <TextView
@@ -117,6 +118,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:visibility="gone"
                 android:padding="12dp"
                 android:text="@string/google_login"
                 android:background="@drawable/transparent_bg"

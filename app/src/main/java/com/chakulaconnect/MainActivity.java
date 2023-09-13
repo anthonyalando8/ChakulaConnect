@@ -2,8 +2,6 @@ package com.chakulaconnect;
 
 import android.app.AlertDialog;
 import android.app.DownloadManager;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +10,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,8 +26,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -57,7 +52,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
+import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -78,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     SharedPreferences.Editor editor;
     Boolean isDonor = false, isRecipient = false, isComplete = false, isIndividual = false, isOrganisation = false;
     Toolbar toolbar;
-    TabLayout tabLayout;
     ImageButton nav_menu, nav_add_post;
     CircleImageView nav_account;
     private NetworkStateReceiver networkStateReceiver;
@@ -88,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     InternetConnectionChecker connectionChecker;
     public ViewPager2 viewPager2Main;
     boolean isActivityCreated = false;
+    ValueEventListener userNodeValueEventListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -187,6 +182,11 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 myDonations.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(myDonations);
             }
+            if(item.getItemId() == R.id.nav_side_about){
+                Intent aboutUs = new Intent(this, ActivityAboutUs.class);
+                aboutUs.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(aboutUs);
+            }
             return false;
         });
     }
@@ -220,45 +220,32 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                                                     DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                                                     long downloadId = downloadManager.enqueue(request);
 
-//                                                    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-//                                                        @Override
-//                                                        public void onReceive(Context context, Intent intent) {
-//                                                            String action = intent.getAction();
-//                                                            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-//                                                                long completedDownloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-//                                                                // Check if the downloadId matches the one you initiated
-//                                                                if (completedDownloadId == downloadId) {
-//                                                                    // Handle the download completion here
-//                                                                    Toast.makeText(context, "Download completed", Toast.LENGTH_SHORT).show();
-//
-//                                                                    // Get the URI of the downloaded file
-//                                                                    Uri downloadedFileUri = downloadManager.getUriForDownloadedFile(downloadId);
-//
-//                                                                    if (downloadedFileUri != null) {
-//                                                                        // Create an intent to open the APK file with the package installer
-//                                                                        Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-//                                                                        installIntent.setDataAndType(
-//                                                                                FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".fileprovider", new File(downloadedFileUri.getPath())),
-//                                                                                "application/vnd.android.package-archive"
-//                                                                        );
-//                                                                        installIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                                                                        installIntent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
-//
-//                                                                        context.startActivity(installIntent);
-//
-//                                                                        // Unregister the BroadcastReceiver after the installation
-//                                                                        context.unregisterReceiver(this);
-//                                                                    } else {
-//                                                                        // Handle the case where the downloaded file URI is null
-//                                                                        Toast.makeText(context, "Failed to open downloaded file", Toast.LENGTH_SHORT).show();
-//                                                                    }
-//                                                                }
-//                                                            }
-//                                                        }
-//                                                    };
-//                                                    // Register the BroadcastReceiver to listen for download completion
-//                                                    IntentFilter downloadFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-//                                                    registerReceiver(broadcastReceiver, downloadFilter);
+                                                    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+                                                        @Override
+                                                        public void onReceive(Context context, Intent intent) {
+                                                            String action = intent.getAction();
+                                                            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+                                                                long completedDownloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                                                                // Check if the downloadId matches the one you initiated
+                                                                if (completedDownloadId == downloadId) {
+                                                                    // Handle the download completion here
+                                                                    Toast.makeText(context, "Download completed, open downloads to install", Toast.LENGTH_SHORT).show();
+
+                                                                    // Get the URI of the downloaded file
+                                                                    Uri downloadedFileUri = downloadManager.getUriForDownloadedFile(downloadId);
+
+                                                                        // Unregister the BroadcastReceiver after the installation
+                                                                        context.unregisterReceiver(this);
+                                                                } else {
+                                                                    // Handle the case where the downloaded file URI is null
+                                                                    Toast.makeText(context, "Failed to open downloaded file", Toast.LENGTH_SHORT).show();
+                                                                }
+                                                                }
+                                                            }
+                                                    };
+                                                    // Register the BroadcastReceiver to listen for download completion
+                                                    IntentFilter downloadFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+                                                    registerReceiver(broadcastReceiver, downloadFilter);
 
 
                                             } else {
@@ -267,7 +254,6 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                                         }
                                     });
 
-                                    dialog.dismiss();
                                 });
                                 builder.create().show();
                             }
@@ -276,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-
+                        Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -290,6 +276,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     protected void onStop() {
         super.onStop();
         FirebaseAuth.getInstance().removeAuthStateListener(this);
+        if(databaseReference != null){
+            databaseReference.removeEventListener(userNodeValueEventListener);
+        }
     }
 
     @Override
@@ -297,6 +286,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         super.onDestroy();
         FirebaseAuth.getInstance().removeAuthStateListener(this);
         unregisterNetworkStateReceiver();
+        if(databaseReference != null){
+            databaseReference.removeEventListener(userNodeValueEventListener);
+        }
     }
 
     @Override
@@ -304,6 +296,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         if(isUser()){
             //Do something
         }else{
+            if(databaseReference != null){
+                databaseReference.removeEventListener(userNodeValueEventListener);
+            }
             startActivity(new Intent(this, AuthLogin.class));
             finish();
         }
@@ -324,8 +319,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         }else{
             if(isUser()){
                 user = FirebaseAuth.getInstance().getCurrentUser();
+                assert user != null;
                 nav_user_name.setText(user.getDisplayName());
-                String imageUri = user.getPhotoUrl().toString();
+                String imageUri = Objects.requireNonNull(user.getPhotoUrl()).toString();
 
                 Picasso.get().load(imageUri).into(nav_user_image);
                 Picasso.get().load(imageUri).into(nav_account);
@@ -443,8 +439,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
             sharedPreferences = getSharedPreferences(user.getUid()+"_pref", MODE_PRIVATE);
 
             String userData = sharedPreferences.getString(user.getUid()+"_data", null);
-            databaseReference.child("Users").child(user.getUid())
-                    .addValueEventListener(new ValueEventListener() {
+                    userNodeValueEventListener = new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             UserModel userModel = snapshot.getValue(UserModel.class);
@@ -468,11 +463,11 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                         public void onCancelled(@NonNull DatabaseError error) {
                             Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-                    });
-            checkUpdates("1.0.1");
+                    };
+            databaseReference.child("Users").child(user.getUid()).addValueEventListener(userNodeValueEventListener);
+            checkUpdates("1.0.3");
         }
     }
-
     @Override
     public void onNetworkDisconnected() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

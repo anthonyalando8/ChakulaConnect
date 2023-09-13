@@ -68,7 +68,7 @@
                             android:layout_gravity="center_vertical"
                             android:padding="5dp"
                             android:layout_marginStart="8dp"
-                            android:background="?attr/colorSecondary"
+                            android:background="?attr/colorPrimaryVariant"
                             android:text="Food Type"/>
                     </RelativeLayout>
 
@@ -163,7 +163,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="?attr/colorSecondary"
+                            android:background="?attr/colorPrimaryVariant"
                             android:padding="5dp"
                             android:layout_marginStart="8dp"
                             android:layout_gravity="center_vertical"
@@ -193,7 +193,7 @@
                             android:layout_gravity="center_vertical"
                             android:padding="5dp"
                             android:layout_marginStart="8dp"
-                            android:background="?attr/colorSecondary"
+                            android:background="?attr/colorPrimaryVariant"
                             android:text="Packaging"/>
                     </RelativeLayout>
 
@@ -315,7 +315,7 @@
                         android:layout_gravity="center_vertical"
                         android:padding="8dp"
                         android:layout_marginStart="10dp"
-                        android:background="?attr/colorSecondary"
+                        android:background="?attr/colorPrimaryVariant"
                         android:text="Food Type"/>
                 </RelativeLayout>
 
@@ -366,7 +366,7 @@
                         android:layout_gravity="center_vertical"
                         android:padding="8dp"
                         android:layout_marginStart="10dp"
-                        android:background="?attr/colorSecondary"
+                        android:background="?attr/colorPrimaryVariant"
                         android:text="Urgency"/>
                 </RelativeLayout>
 
@@ -428,7 +428,7 @@
                                     android:layout_height="wrap_content"
                                     android:id="@+id/etPickDeliveryCounty"
                                     android:padding="8dp"
-                                    android:background="?attr/colorSecondary"
+                                    android:background="?attr/colorPrimaryVariant"
                                     android:visibility="visible"
                                     android:layout_marginTop="5dp" />
                             </LinearLayout>
@@ -436,7 +436,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:padding="5dp"
-                                android:background="?attr/colorSecondary"
+                                android:background="?attr/colorPrimaryVariant"
                                 android:layout_marginStart="8dp"
                                 android:text="County/Region"/>
                         </RelativeLayout>
@@ -454,7 +454,7 @@
                                     android:layout_height="wrap_content"
                                     android:id="@+id/etPickDeliveryTown"
                                     android:padding="8dp"
-                                    android:background="?attr/colorSecondary"
+                                    android:background="?attr/colorPrimaryVariant"
                                     android:visibility="visible"
                                     android:layout_marginTop="5dp" />
                             </LinearLayout>
@@ -462,7 +462,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:padding="5dp"
-                                android:background="?attr/colorSecondary"
+                                android:background="?attr/colorPrimaryVariant"
                                 android:layout_marginStart="8dp"
                                 android:text="City/Town"/>
                         </RelativeLayout>
@@ -480,7 +480,7 @@
                                     android:layout_height="wrap_content"
                                     android:id="@+id/etPickDeliveryAddress"
                                     android:padding="8dp"
-                                    android:background="?attr/colorSecondary"
+                                    android:background="?attr/colorPrimaryVariant"
                                     android:visibility="visible"
                                     android:layout_marginTop="5dp" />
                             </LinearLayout>
@@ -488,7 +488,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:padding="5dp"
-                                android:background="?attr/colorSecondary"
+                                android:background="?attr/colorPrimaryVariant"
                                 android:layout_marginStart="8dp"
                                 android:text="Street Address"/>
                         </RelativeLayout>
@@ -503,12 +503,53 @@
                     android:padding="5dp"
                     android:layout_marginStart="8dp"
                     android:id="@+id/txtAddressLbl"
-                    android:background="?attr/colorSecondary"/>
+                    android:background="?attr/colorPrimaryVariant"/>
             </RelativeLayout>
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@id/rlAddress"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/dashboard_section_bg"
+                android:id="@+id/rlAttachImage">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/spinner_bg"
+                    android:layout_marginTop="15dp">
+                    <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/fbAttachImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:layout_marginTop="5dp"
+                        app:flexDirection="row"
+                        app:flexWrap="wrap">
+
+                        <ImageButton
+                            android:id="@+id/ibAddPhoto"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@android:color/transparent"
+                            android:src="@drawable/insert_photo_large"
+                            android:tooltipText="Add photo" />
+                    </com.google.android.flexbox.FlexboxLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:padding="2dp"
+                    android:background="?attr/colorPrimaryVariant"
+                    android:text="Attach image"/>
+            </RelativeLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/rlAttachImage"
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_marginTop="8dp"
                 android:orientation="horizontal">

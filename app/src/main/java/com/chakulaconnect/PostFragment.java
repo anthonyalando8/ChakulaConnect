@@ -6,15 +6,21 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayout;
+import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -30,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -136,6 +143,19 @@ class DonationsAdapter extends RecyclerView.Adapter<DonationsAdapter.DonationHol
                 }).addOnFailureListener(e->{
                     Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+        if(donationModel.getImagesUri() != null && !donationModel.getImagesUri().isEmpty()){
+            holder.rvDonationPictures.setVisibility(View.VISIBLE);
+            int spanCount = 1;
+            if (donationModel.getImagesUri().size() >= 2){
+                spanCount = 2;
+            }
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
+            //FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(context, FlexDirection.ROW, FlexWrap.WRAP);
+            holder.rvDonationPictures.setLayoutManager(gridLayoutManager);
+            DonationPicturesAdapter donationPicturesAdapter = new DonationPicturesAdapter(context, donationModel.getImagesUri());
+            holder.rvDonationPictures.setAdapter(donationPicturesAdapter);
+            donationPicturesAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -146,6 +166,7 @@ class DonationsAdapter extends RecyclerView.Adapter<DonationsAdapter.DonationHol
     class DonationHolder extends RecyclerView.ViewHolder{
         CircleImageView civUserDonor;
         TextView userName, txtFoodType, txtFoodQuantity, txtDonationDateSingle;
+        RecyclerView rvDonationPictures;
         public DonationHolder(@NonNull View itemView) {
             super(itemView);
             civUserDonor = itemView.findViewById(R.id.civUserDonorImage);
@@ -153,6 +174,48 @@ class DonationsAdapter extends RecyclerView.Adapter<DonationsAdapter.DonationHol
             txtFoodType = itemView.findViewById(R.id.txtFoodTypeDonor);
             txtFoodQuantity = itemView.findViewById(R.id.txtFoodQuantityDonor);
             txtDonationDateSingle = itemView.findViewById(R.id.txtDonationDate);
+            rvDonationPictures = itemView.findViewById(R.id.rvDonationPictures);
+        }
+    }
+}
+
+class DonationPicturesAdapter extends RecyclerView.Adapter<DonationPicturesAdapter.PicturesHolder>{
+    Context context;
+    HashMap<String, String> imageHash;
+    ArrayList<String> imageKeys;
+
+    public DonationPicturesAdapter(Context context, HashMap<String, String> imageHash) {
+        this.context = context;
+        this.imageHash = imageHash;
+        this.imageKeys = new ArrayList<>(imageHash.keySet());
+    }
+
+    @NonNull
+    @Override
+    public PicturesHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.custom_image_layout, parent, false);
+        return new PicturesHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull PicturesHolder holder, int position) {
+        String key = imageKeys.get(position);
+        String imageUri = imageHash.get(key);
+        if(!imageUri.isEmpty()){
+            Picasso.get().load(imageUri).into(holder.imageViewCustom);
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return imageHash.size();
+    }
+
+    class PicturesHolder extends RecyclerView.ViewHolder{
+        ImageView imageViewCustom;
+        public PicturesHolder(@NonNull View itemView) {
+            super(itemView);
+            imageViewCustom = itemView.findViewById(R.id.imageViewCustom);
         }
     }
 }
