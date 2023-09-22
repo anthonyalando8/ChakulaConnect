@@ -7,11 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
@@ -114,9 +117,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
 
         registerNetworkStateReceiver();
 
-        navHeader.setOnClickListener(v->{
-            viewProfile();
-        });
+
 
 
         auth = FirebaseAuth.getInstance();
@@ -125,6 +126,12 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         connectionChecker = new InternetConnectionChecker(this);
 
         databaseReference = FirebaseDatabase.getInstance().getReference();
+        navHeader.setOnClickListener(v->{
+            if(isUser()){
+                loadUserProfile();
+            }
+
+        });
 
         if(isUser()){
             userId = user.getUid();
@@ -153,7 +160,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
             }
         });
         nav_account.setOnClickListener(v->{
-            viewProfile();
+            if (isUser()){
+                loadUserProfile();
+            }
         });
 
         nav_add_post.setOnClickListener(v->{
@@ -421,9 +430,10 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     }
 
 
-    private void viewProfile(){
+    private void viewProfile(UserModel userModel){
+        String userData = gson.toJson(userModel);
         Intent profileIntent = new Intent(this, Profile.class);
-        profileIntent.putExtra("userId", user.getUid());
+        profileIntent.putExtra("userData", userData);
         profileIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(profileIntent);
     }
@@ -465,7 +475,18 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                         }
                     };
             databaseReference.child("Users").child(user.getUid()).addValueEventListener(userNodeValueEventListener);
-            checkUpdates("1.0.3");
+            try {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                String versionName = packageInfo.versionName;
+                int versionCode = packageInfo.versionCode;
+                System.out.println(versionName);
+                checkUpdates(versionName);
+
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+
+
         }
     }
     @Override
@@ -489,6 +510,21 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         if (networkStateReceiver != null) {
             unregisterReceiver(networkStateReceiver);
         }
+    }
+    private void loadUserProfile(){
+        AlertDialog alertDialog = Progress.createAlertDialog(this, "Loading...");
+        alertDialog.show();
+        databaseReference.child("Users/"+ user.getUid())
+                .get().addOnCompleteListener(task->{
+                    if(task.isSuccessful()){
+                        alertDialog.dismiss();
+                        UserModel userModel = task.getResult().getValue(UserModel.class);
+                        viewProfile(userModel);
+                    }
+                }).addOnFailureListener(e->{
+                    alertDialog.dismiss();
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }
 class ViewPagerAdapter extends FragmentStateAdapter {

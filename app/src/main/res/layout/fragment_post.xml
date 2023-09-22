@@ -9,7 +9,8 @@
     tools:context=".PostFragment">
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:id="@+id/refresh">
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent">

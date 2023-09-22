@@ -13,6 +13,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -61,12 +62,21 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UsersViewHol
             Toast.makeText(context, userId, Toast.LENGTH_SHORT).show();
         });
         holder.txt_user_name.setOnClickListener(v->{
+            Gson gson = new Gson();
+            String userData = gson.toJson(userModel);
             Intent profileIntent = new Intent(context, Profile.class);
             profileIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            profileIntent.putExtra("userId", userId);
-            profileIntent.putExtra("displayName", accountInfo.get("userName"));
-            profileIntent.putExtra("email", accountInfo.get("email"));
+            profileIntent.putExtra("userData", userData);
             context.startActivity(profileIntent);
+        });
+
+        holder.btn_user_connect.setOnClickListener(v->{
+            Intent messageIntent = new Intent(context, ChatActivity.class);
+            messageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Gson gson = new Gson();
+            String userInfo = gson.toJson(userModel);
+            messageIntent.putExtra("userInfo", userInfo);
+            context.startActivity(messageIntent);
         });
     }
 

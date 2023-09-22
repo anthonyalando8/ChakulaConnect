@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ViewPostDonation">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/clUserProfile"
+    app:layout_constraintTop_toTopOf="parent">
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/civUserImagePostView"
+        android:src="@drawable/user"
+        android:layout_margin="5dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/civUserImagePostView"
+        app:layout_constraintTop_toTopOf="parent"
+        android:maxLines="2"
+        android:text="Name"
+        android:textSize="16sp"
+        android:paddingStart="8dp"
+        android:id="@+id/txtUserNamePostView"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/ibMorePostView"/>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/civUserImagePostView"
+        app:layout_constraintBottom_toBottomOf="@id/civUserImagePostView"
+        android:text="01/01/1970"
+        android:paddingStart="8dp"
+        android:alpha="0.8"
+        app:layout_constraintEnd_toStartOf="@id/ibMorePostView"/>
+    <ImageButton
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/baseline_more_vert_24"
+        android:background="@android:color/transparent"
+        android:id="@+id/ibMorePostView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        app:layout_constraintTop_toBottomOf="@id/civUserImagePostView"
+        android:layout_marginTop="5dp"
+        android:id="@+id/dividerPostView"
+        android:background="?attr/actionBarDivider"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/dividerPostView"
+        android:layout_marginTop="5dp"
+        android:id="@+id/clCommon">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:id="@+id/lblFoodType"
+            android:padding="5dp"
+
+            android:text="Food type: "/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/lblFoodType"
+            android:padding="5dp"
+            android:id="@+id/lblFoodQuantity"
+            android:text="Quantity: "/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/clCommon"
+        android:id="@+id/clRequestInfo">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Urgency: "
+            android:id="@+id/lblRequestUrgency"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

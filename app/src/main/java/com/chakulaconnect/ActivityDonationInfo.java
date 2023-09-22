@@ -81,9 +81,12 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
     DatabaseReference uniqueKeyRequest = requestRef.push();
     DatabaseReference notificationRef = FirebaseDatabase.getInstance().getReference("Notifications");
     DatabaseReference notifyUniqueKey = notificationRef.push();
+    DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("Posts");
+    DatabaseReference postUniqueKey = postRef.push();
     ArrayList<byte[]> imageBytes;
     HashMap<String, String> imagesUri;
     AlertDialog alertDialog;
+    String postReference = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,7 +97,7 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         user = auth.getCurrentUser();
         databaseReference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
-        alertDialog = Progress.createAlertDialog(this, "Please wait...");
+        alertDialog = Progress.createAlertDialog(this, "Submitting...");
 
         imageUtil = new ImageUtil(this, this, 80);
         imageBytes = new ArrayList<byte[]>();
@@ -254,6 +257,7 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                 if(validateDonorInfo(foodTypeDonor, packDate, expiry,quantity, quality, packaging, county, city, address)){
                     DonationModel donationModel = new DonationModel(foodDetails, storageHand, locationModel, donor, uniqueKeyDonations.getKey(),
                             Long.toString(System.currentTimeMillis()), imagesUri, uniqueKeyDonations.toString());
+                    postReference = uniqueKeyDonations.toString();
                     if(imageBytes.isEmpty()){
                         submitData(donationModel, alertDialog);
                     }else {
@@ -285,6 +289,7 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                     DonationRequestModel donationRequestModel = new DonationRequestModel(foodDetails, locationModel, isUser() ? user.getUid() : "",
                             uniqueKeyRequest.getKey(), Long.toString(System.currentTimeMillis()), imagesUri, uniqueKeyRequest.toString());
 
+                    postReference = uniqueKeyRequest.toString();
                     if(imageBytes.isEmpty()){
                         submitDonationRequest(donationRequestModel, alertDialog);
                     }else {
@@ -561,12 +566,19 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                                         HashMap<String, String> flags = new HashMap<>();
                                         flags.put("Entity", "All");
                                         flags.put("Role", "Recipient");
+                                        flags.put("Type", "0");
+                                        String description = donationModel.getFoodDetails().get("quantity").toString()
+                                                .concat(" KGs "+donationModel.getFoodDetails().get("foodType"));
                                         NotificationModel notificationModel = new NotificationModel(donationModel.getDonationDate(),
-                                                user.getDisplayName().concat(" is donating."), notifyUniqueKey.toString(),
-                                                "Products: ".concat(donationModel.getFoodDetails().get("foodType").toString()),user.getPhotoUrl().toString(),flags,
+                                               user.getDisplayName().concat(" is donating"), notifyUniqueKey.toString(),
+                                                description,user.getPhotoUrl().toString(),flags,
                                                 user.getUid(), uniqueKeyDonations.toString()
                                         );
-                                        submitNotification(alertDialog, notificationModel);
+                                        PostModel postModel = new PostModel(uniqueKeyDonations.toString(), donationModel.getDonationDate(),
+                                                "",description,user.getUid(),0, donationModel.getImagesUri(),new HashMap<>(),
+                                                postUniqueKey.getKey(), postUniqueKey.toString());
+                                        //submitNotification(alertDialog, notificationModel);
+                                        submitPost(postUniqueKey, postModel, alertDialog, notificationModel);
                                     }
                                 }
                             }).addOnFailureListener(e->{
@@ -593,9 +605,12 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                     HashMap<String, String> flags = new HashMap<>();
                     flags.put("Entity", "All");
                     flags.put("Role", "Donor");
+                    flags.put("Type", "1");
+                    String description = donationRequestModel.getFoodDetails().get("foodType").toString()
+                            .concat(" for ".concat(donationRequestModel.getFoodDetails().get("quantity")+" people"));
                     NotificationModel notificationModel = new NotificationModel(donationRequestModel.getRequestDate(),
-                            user.getDisplayName().concat(" is requesting for donation"), notifyUniqueKey.toString(),
-                            "Required product: ".concat(donationRequestModel.getFoodDetails().get("foodType").toString()),user.getPhotoUrl().toString(),flags,
+                           user.getDisplayName().concat(" requesting donation") , notifyUniqueKey.toString(),
+                            description,user.getPhotoUrl().toString(),flags,
                             user.getUid(), uniqueKeyRequest.toString()
                             );
                     DatabaseReference activityRef = FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("activity");
@@ -606,7 +621,11 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if (task.isSuccessful()){
-                                                submitNotification(alertDialog, notificationModel);
+                                                PostModel postModel = new PostModel(uniqueKeyDonations.toString(), donationRequestModel.getRequestDate(),
+                                                        "",description,user.getUid(),1, donationRequestModel.getImagesUri(),new HashMap<>(),
+                                                        postUniqueKey.getKey(), postUniqueKey.toString());
+                                                submitPost(postUniqueKey, postModel, alertDialog, notificationModel);
+                                                //submitNotification(alertDialog, notificationModel);
                                             }
                                         }
                                     }).addOnFailureListener(e->{
@@ -661,5 +680,17 @@ public class ActivityDonationInfo extends AppCompatActivity implements FirebaseA
         })).addOnFailureListener(e->{
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void submitPost(DatabaseReference databaseReference, PostModel postModel, AlertDialog alertDialog, NotificationModel notificationModel){
+        alertDialog.show();
+        databaseReference.setValue(postModel).addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                submitNotification(alertDialog, notificationModel);
+            }
+        }).addOnFailureListener(e->{
+            alertDialog.dismiss();
+        });
+
     }
 }

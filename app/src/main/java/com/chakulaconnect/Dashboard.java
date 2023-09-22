@@ -150,9 +150,9 @@ public class Dashboard extends Fragment implements FirebaseAuth.AuthStateListene
         // Customize X Axis
         gvDashBoard.getGridLabelRenderer().setHorizontalLabelsColor(Color.BLACK);
         gvDashBoard.getGridLabelRenderer().setHorizontalLabelsVisible(true);
-        gvDashBoard.getGridLabelRenderer().setHorizontalAxisTitle("Date of month");
+        gvDashBoard.getGridLabelRenderer().setHorizontalAxisTitle("Year");
 
-        gvDashBoard.setTitle("Donation made in past 5 days");
+        gvDashBoard.setTitle("Donation made in past 5 years");
         retrieveDonations();
         // Customize the X-axis label formatting
         gvDashBoard.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
@@ -272,10 +272,10 @@ public class Dashboard extends Fragment implements FirebaseAuth.AuthStateListene
                         Map<Integer, Integer> dataMap = new HashMap<>();
                         Calendar currentDate = Calendar.getInstance();
                         for (int i = 0; i <= 4; i++) {
-                            int year = currentDate.get(Calendar.DAY_OF_MONTH) - i;
+                            int year = currentDate.get(Calendar.YEAR) - i;
                             dataMap.put(year, 0);
                         }
-
+                        int currentIndex = 0;
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             DonationModel donationModel = dataSnapshot.getValue(DonationModel.class);
                             if (donationModel != null && donationModel.getDonor().equals(user.getUid())) {
@@ -301,28 +301,40 @@ public class Dashboard extends Fragment implements FirebaseAuth.AuthStateListene
 //                        if (year > minYear.get(Calendar.YEAR)) {
 //                            dataMap.put(year, dataMap.get(year) + 1);
 //                        }
-                            if (day > minYear.get(Calendar.DAY_OF_MONTH)) {
-                                dataMap.put(day, dataMap.get(day) + 1);
+                            if (year > minYear.get(Calendar.YEAR)) {
+                                gvDashBoard.setVisibility(View.VISIBLE);
+                                //dataMap.put(day, dataMap.get(day) + 1);
+                                dataMap.put(year, dataMap.get(year) + 1);
+                                if(currentIndex == snapshot.getChildrenCount() - 1){
+                                    // Convert the HashMap data to an array of DataPoint
+                                    DataPoint[] dataPoints = new DataPoint[dataMap.size()];
+                                    if(dataMap != null && !dataMap.isEmpty()){
+                                        int index = 0;
+                                        for (Map.Entry<Integer, Integer> entry : dataMap.entrySet()) {
+                                            int date = entry.getKey();
+                                            int value = entry.getValue();
+                                            dataPoints[index] = new DataPoint(date, value);
+                                            index++;
+                                        }
+
+                                        //LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+                                        try {
+                                            BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
+                                            series.setSpacing(10);
+                                            gvDashBoard.addSeries(series);
+                                        }catch (Exception e){
+                                            gvDashBoard.setVisibility(View.GONE);
+                                            Toast.makeText(getContext(), "Graph error", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                }
                             }
+                            currentIndex++;
                         }
 
                         lblTotalDonations.setText(String.valueOf(totalDonations));
                         lblMyTotalDonations.setText(String.valueOf(myTotalDonations));
 
-                        // Convert the HashMap data to an array of DataPoint
-                        DataPoint[] dataPoints = new DataPoint[dataMap.size()];
-                        int index = 0;
-                        for (Map.Entry<Integer, Integer> entry : dataMap.entrySet()) {
-                            int year = entry.getKey();
-                            int value = entry.getValue();
-                            dataPoints[index] = new DataPoint(year, value);
-                            index++;
-                        }
-
-                        //LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
-                        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
-                        series.setSpacing(10);
-                        gvDashBoard.addSeries(series);
                     }
                 }
 

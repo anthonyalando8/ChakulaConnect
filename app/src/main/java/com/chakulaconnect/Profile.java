@@ -39,8 +39,6 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
     Gson gson;
     DatabaseReference databaseReference;
     String userName, userData, userEmail, imageUri, userId, role, entityType;
-    Long joinDate;
-    SharedPreferences sharedPreferences;
     MaterialButton btn_create_post, btn_edit_profile;
     ImageButton ib_manage_profile;
     ImageView iv_user_cover;
@@ -80,26 +78,23 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
         txtRegion = findViewById(R.id.txtRegion);
         txtMoreInfo = findViewById(R.id.txtMoreInfo);
 
-        userId = getIntent().getStringExtra("userId");
-        userName = getIntent().getStringExtra("displayName");
-        userEmail = getIntent().getStringExtra("email");
+        userData = getIntent().getStringExtra("userData");
         if (isUser()){
-            if(userId != null){
+            if(userData != null && !userData.isEmpty()){
+                UserModel userModel = gson.fromJson(userData, UserModel.class);
+                userId = userModel.getAccountDetails().get("userId");
+                userName = userModel.getAccountDetails().get("userName");
+                userEmail = userModel.getAccountDetails().get("email");
+                imageUri = userModel.getAccountDetails().get("imageUri");
+
                 if(userId.equals(user.getUid())) {
                     if(getSupportActionBar() !=  null){
                         getSupportActionBar().setTitle("My profile");
                     }
-
                     clIsUser.setVisibility(View.VISIBLE);
-                    userName = user.getDisplayName();
-                    userEmail = user.getEmail();
-                    imageUri = user.getPhotoUrl().toString();
-                    sharedPreferences = getSharedPreferences(userId + "_pref", MODE_PRIVATE);
-                    userData = sharedPreferences.getString(user.getUid()+"_data", null);
-                    if(userData != null){
-                        UserModel userModel = gson.fromJson(userData, UserModel.class);
-                        btn_create_post.setText(userModel.getAccount_role().containsKey("Donor") ? "Donate" : "Make request");
-                    }
+
+                    btn_create_post.setText(userModel.getAccount_role().containsKey("Donor") ? "Donate" : "Make request");
+
                 }else{
                     if(getSupportActionBar() !=  null){
                         getSupportActionBar().setTitle(userName);
@@ -107,6 +102,36 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
                     }
                     clIsUser.setVisibility(View.GONE);
                 }
+
+                if(userModel.getAccount_role().containsKey("Donor")){
+                    role = "Donor";
+                }else if(userModel.getAccount_role().containsKey("Recipient")){
+                    role = "Recipient";
+                }
+                if(userModel.getAccount_role().containsKey("Organisation")){
+                    entityType = "Organisation";
+                }else if(userModel.getAccount_role().containsKey("Individual")){
+                    entityType = "Individual";
+                }
+                txtUserEmail.setText(userEmail);
+                txtUserName.setText(userName);
+                txtPhone.setText(userModel.getMoreInfo().get("phone").toString());
+                txtMoreInfo.setText(userModel.getMoreInfo().get("moreInfo").toString());
+
+                if(userModel.getAccountDetails().containsKey("coverUri") && !userModel.getAccountDetails().get("coverUri").isEmpty()){
+                    Picasso.get()
+                            .load(userModel.getAccountDetails().get("coverUri"))
+                            .into(iv_user_cover);
+                }
+                Picasso.get().load(imageUri).into(civUserImage);
+
+                txtType.setText(entityType);
+                txtRole.setText(role);
+
+                txtComplete.setText(userModel.getAccount_role().get("complete").toString());
+
+                txtJoinDate.setText(TimeCalculator.calculateTime(Long.parseLong(userModel.getAccountDetails().get("joinDate"))));
+
                 retrievePersonalInfo(userId);
             }
 
@@ -160,48 +185,16 @@ public class Profile extends AppCompatActivity implements FirebaseAuth.AuthState
         alertDialog.show();
 
         databaseReference.child("Users").child(userId)
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()){
-                            alertDialog.dismiss();
-                            DataSnapshot snapshot = task.getResult();
+                .get().addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        alertDialog.dismiss();
+                        DataSnapshot snapshot = task.getResult();
 
-                            UserModel userModel = snapshot.getValue(UserModel.class);
-                            //Object locationObj = userModel.getMoreInfo().get("location");
+                        if(snapshot.child("moreInfo").child("location").hasChildren()){
                             LocationModel locationModel = snapshot.child("moreInfo").child("location").getValue(LocationModel.class);
-                            txtPhone.setText(userModel.getMoreInfo().get("phone").toString());
                             txtAddress.setText(locationModel.getStreetAddress());
                             txtCountry.setText(locationModel.getCountry());
                             txtRegion.setText(locationModel.getCounty());
-                            txtMoreInfo.setText(userModel.getMoreInfo().get("moreInfo").toString());
-
-
-                            if(snapshot.child("account_role").hasChild("Donor")){
-                                role = "Donor";
-                            }else if(snapshot.child("account_role").hasChild("Recipient")){
-                                role = "Recipient";
-                            }
-                            if(snapshot.child("account_role").hasChild("Organisation")){
-                                entityType = "Organisation";
-                            }else if(snapshot.child("account_role").hasChild("Individual")){
-                                entityType = "Individual";
-                            }
-                            txtUserEmail.setText(userModel.getAccountDetails().get("email"));
-                            txtUserName.setText(userModel.getAccountDetails().get("userName"));
-                            if(userModel.getAccountDetails().containsKey("coverUri") && !userModel.getAccountDetails().get("coverUri").isEmpty()){
-                                Picasso.get()
-                                        .load(userModel.getAccountDetails().get("coverUri"))
-                                        .into(iv_user_cover);
-                            }
-                            Picasso.get().load(userModel.getAccountDetails().get("imageUri")).into(civUserImage);
-
-                            txtType.setText(entityType);
-                            txtRole.setText(role);
-
-                            txtComplete.setText(userModel.getAccount_role().get("complete").toString());
-
-                            txtJoinDate.setText(TimeCalculator.calculateTime(Long.parseLong(userModel.getAccountDetails().get("joinDate"))));
                         }
                     }
                 }).addOnFailureListener(e -> {

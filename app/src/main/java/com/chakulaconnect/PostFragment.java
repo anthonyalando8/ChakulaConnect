@@ -1,5 +1,6 @@
 package com.chakulaconnect;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +19,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.flexbox.FlexDirection;
-import com.google.android.flexbox.FlexWrap;
-import com.google.android.flexbox.FlexboxLayout;
-import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -29,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.time.Instant;
@@ -43,8 +42,9 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class PostFragment extends Fragment {
 
     RecyclerView postRecycleView;
-    ArrayList<DonationModel> donationModels;
+    ArrayList<PostModel> postModels;
     FloatingActionButton fabDonateRequest;
+    SwipeRefreshLayout swipeRefreshLayout;
     public PostFragment() {
         // Required empty public constructor
     }
@@ -62,11 +62,13 @@ public class PostFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_post, container, false);
         postRecycleView = view.findViewById(R.id.rcDonations);
         fabDonateRequest = view.findViewById(R.id.fabDonateRequest);
+        swipeRefreshLayout = view.findViewById(R.id.refresh);
+
         LinearLayoutManager layoutActivityManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         postRecycleView.setLayoutManager(layoutActivityManager);
-        donationModels = new ArrayList<>();
-        DonationsAdapter donationsAdapter = new DonationsAdapter(getContext(), donationModels);
-        postRecycleView.setAdapter(donationsAdapter);
+        postModels = new ArrayList<>();
+        PostAdapter postAdapter = new PostAdapter(getContext(), postModels);
+        postRecycleView.setAdapter(postAdapter);
 
         fabDonateRequest.setOnClickListener(v->{
             Intent donRecIntent = new Intent(getContext(), ActivityDonationInfo.class);
@@ -74,34 +76,46 @@ public class PostFragment extends Fragment {
             startActivity(donRecIntent);
         });
 
+        loadPost(postAdapter);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadPost(postAdapter);
+            }
+        });
+
+        return view;
+    }
+    private void loadPost(PostAdapter postAdapter){
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.child("Donations").get()
+        databaseReference.child("Posts").get()
                 .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if(task.isSuccessful()){
+                            swipeRefreshLayout.setRefreshing(false);
+                            postModels.clear();
                             for(DataSnapshot snapshot : task.getResult().getChildren()){
                                 if(snapshot.exists()){
-                                    donationModels.add(snapshot.getValue(DonationModel.class));
+                                    postModels.add(snapshot.getValue(PostModel.class));
                                 }
                             }
-                            donationsAdapter.notifyDataSetChanged();
+                            postAdapter.notifyDataSetChanged();
                         }
                     }
                 }).addOnFailureListener(e->{
                     Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-
-        return view;
     }
 }
-class DonationsAdapter extends RecyclerView.Adapter<DonationsAdapter.DonationHolder>{
+class PostAdapter extends RecyclerView.Adapter<PostAdapter.DonationHolder>{
     Context context;
-    ArrayList<DonationModel> donationModels;
+    ArrayList<PostModel> postModels;
 
-    public DonationsAdapter(Context context, ArrayList<DonationModel> donationModels) {
+    public PostAdapter(Context context, ArrayList<PostModel> postModels) {
         this.context = context;
-        this.donationModels = donationModels;
+        this.postModels = postModels;
     }
 
     @NonNull
@@ -113,18 +127,39 @@ class DonationsAdapter extends RecyclerView.Adapter<DonationsAdapter.DonationHol
 
     @Override
     public void onBindViewHolder(@NonNull DonationHolder holder, int position) {
-        DonationModel donationModel = donationModels.get(position);
-        holder.txtFoodType.setText("Food type: ".concat(donationModel.getFoodDetails().get("foodType").toString()));
-        holder.txtFoodQuantity.setText("Food quantity: ".concat(donationModel.getFoodDetails().get("quantity")+"KGs"));
+        PostModel postModel = postModels.get(position);
 
-        Instant instant = Instant.ofEpochMilli(Long.parseLong(donationModel.getDonationDate()));
+        Instant instant = Instant.ofEpochMilli(Long.parseLong(postModel.getTime()));
         LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        holder.txtDonationDateSingle.setText(localDateTime.format(formatter));
+        holder.txtPostDate.setText(localDateTime.format(formatter));
+        holder.txtPostDescriptionText.setText(postModel.getTextDescription());
+
+        holder.civUserDonor.setOnClickListener(v->{
+            AlertDialog alertDialog = Progress.createAlertDialog(context, "Loading...");
+            alertDialog.show();
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users/"+postModel.getSourceId());
+            userRef.get().addOnCompleteListener(task->{
+                if(task.isSuccessful()){
+                    alertDialog.dismiss();
+                    UserModel userModel = task.getResult().getValue(UserModel.class);
+                    Gson gson = new Gson();
+                    String userData = gson.toJson(userModel);
+                    Intent profileIntent = new Intent(context, Profile.class);
+                    profileIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    profileIntent.putExtra("userData", userData);
+                    context.startActivity(profileIntent);
+                }
+            }).addOnFailureListener(e->{
+                alertDialog.dismiss();
+                Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+
+        });
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.child("Users").child(donationModel.getDonor()).get()
+        databaseReference.child("Users").child(postModel.getSourceId()).get()
                 .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -133,58 +168,60 @@ class DonationsAdapter extends RecyclerView.Adapter<DonationsAdapter.DonationHol
                             if(snapshot.exists()){
                                 UserModel userModel = snapshot.getValue(UserModel.class);
                                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                holder.userName.setText( userModel.getAccountDetails().get("userId").equals(user.getUid())
-                                        ? "You donated" : userModel.getAccountDetails().get("userName").concat(" donated"));
+                                holder.userName.setText( postModel.getPostType() == 0 ?
+                                        userModel.getAccountDetails().get("userId").equals(user.getUid()) ? "You donated" : userModel.getAccountDetails().get("userName").concat(" donated")
+                                        : userModel.getAccountDetails().get("userId").equals(user.getUid()) ? "You requested" : userModel.getAccountDetails().get("userName").concat(" requested"));
                                 Picasso.get().load(userModel.getAccountDetails().get("imageUri"))
                                         .into(holder.civUserDonor);
                             }
                         }
                     }
-                }).addOnFailureListener(e->{
+                })
+                .addOnFailureListener(e->{
                     Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-        if(donationModel.getImagesUri() != null && !donationModel.getImagesUri().isEmpty()){
+        if(postModel.getImageUri() != null && !postModel.getImageUri().isEmpty()){
             holder.rvDonationPictures.setVisibility(View.VISIBLE);
             int spanCount = 1;
-            if (donationModel.getImagesUri().size() >= 2){
+            if (postModel.getImageUri().size() >= 2){
                 spanCount = 2;
             }
             GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
             //FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(context, FlexDirection.ROW, FlexWrap.WRAP);
             holder.rvDonationPictures.setLayoutManager(gridLayoutManager);
-            DonationPicturesAdapter donationPicturesAdapter = new DonationPicturesAdapter(context, donationModel.getImagesUri());
-            holder.rvDonationPictures.setAdapter(donationPicturesAdapter);
-            donationPicturesAdapter.notifyDataSetChanged();
+            PostPicturesAdapter PostPicturesAdapter = new PostPicturesAdapter(context, postModel.getImageUri());
+            holder.rvDonationPictures.setAdapter(PostPicturesAdapter);
+            PostPicturesAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     public int getItemCount() {
-        return donationModels.size();
+        return postModels.size();
     }
 
     class DonationHolder extends RecyclerView.ViewHolder{
         CircleImageView civUserDonor;
-        TextView userName, txtFoodType, txtFoodQuantity, txtDonationDateSingle;
+        TextView userName, txtPostDescriptionText, txtPostLink, txtPostDate;
         RecyclerView rvDonationPictures;
         public DonationHolder(@NonNull View itemView) {
             super(itemView);
             civUserDonor = itemView.findViewById(R.id.civUserDonorImage);
             userName = itemView.findViewById(R.id.txtUserNameDonor);
-            txtFoodType = itemView.findViewById(R.id.txtFoodTypeDonor);
-            txtFoodQuantity = itemView.findViewById(R.id.txtFoodQuantityDonor);
-            txtDonationDateSingle = itemView.findViewById(R.id.txtDonationDate);
+            txtPostDescriptionText = itemView.findViewById(R.id.txtPostDescriptionText);
+            txtPostLink = itemView.findViewById(R.id.txtFoodQuantityDonor);
+            txtPostDate = itemView.findViewById(R.id.txtDonationDate);
             rvDonationPictures = itemView.findViewById(R.id.rvDonationPictures);
         }
     }
 }
 
-class DonationPicturesAdapter extends RecyclerView.Adapter<DonationPicturesAdapter.PicturesHolder>{
+class PostPicturesAdapter extends RecyclerView.Adapter<PostPicturesAdapter.PicturesHolder>{
     Context context;
     HashMap<String, String> imageHash;
     ArrayList<String> imageKeys;
 
-    public DonationPicturesAdapter(Context context, HashMap<String, String> imageHash) {
+    public PostPicturesAdapter(Context context, HashMap<String, String> imageHash) {
         this.context = context;
         this.imageHash = imageHash;
         this.imageKeys = new ArrayList<>(imageHash.keySet());

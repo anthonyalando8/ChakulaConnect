@@ -104,6 +104,7 @@
                     android:layout_height="200dp"
                     android:id="@+id/graphDashboard"
                     android:layout_marginTop="5dp"
+                    android:visibility="gone"
                     app:layout_constraintTop_toBottomOf="@id/llDonationRec"/>
 
                 <androidx.constraintlayout.widget.ConstraintLayout

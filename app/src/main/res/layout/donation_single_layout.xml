@@ -48,13 +48,14 @@
         app:layout_constraintTop_toBottomOf="@id/divider"
         app:layout_constraintStart_toStartOf="parent"
         android:padding="8dp"
-        android:id="@+id/txtFoodTypeDonor"/>
+        android:id="@+id/txtPostDescriptionText"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/txtFoodTypeDonor"
+        app:layout_constraintTop_toBottomOf="@id/txtPostDescriptionText"
         app:layout_constraintStart_toStartOf="parent"
         android:padding="8dp"
+        android:visibility="gone"
         android:id="@+id/txtFoodQuantityDonor"/>
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
