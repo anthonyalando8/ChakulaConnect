@@ -193,6 +193,7 @@ public class AuthLogin extends AppCompatActivity {
         alertDialog.show();
         auth.sendPasswordResetEmail(EMAIL).addOnCompleteListener(task->{
             if(task.isSuccessful()){
+                Toast.makeText(this, "Check your email", Toast.LENGTH_SHORT).show();
                 alertDialog.dismiss();
             }else {
                 Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();

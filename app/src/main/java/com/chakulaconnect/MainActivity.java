@@ -2,6 +2,9 @@ package com.chakulaconnect;
 
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +32,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -47,6 +53,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -86,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     public ViewPager2 viewPager2Main;
     boolean isActivityCreated = false;
     ValueEventListener userNodeValueEventListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,30 +126,28 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         registerNetworkStateReceiver();
 
 
-
-
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
         gson = new Gson();
         connectionChecker = new InternetConnectionChecker(this);
 
         databaseReference = FirebaseDatabase.getInstance().getReference();
-        navHeader.setOnClickListener(v->{
-            if(isUser()){
+        navHeader.setOnClickListener(v -> {
+            if (isUser()) {
                 loadUserProfile();
             }
 
         });
 
-        if(isUser()){
+        if (isUser()) {
             userId = user.getUid();
             userName = user.getDisplayName();
-            sharedPreferences = getSharedPreferences(user.getUid()+"_pref", MODE_PRIVATE);
-            String userData = sharedPreferences.getString(user.getUid()+"_data", null);
+            sharedPreferences = getSharedPreferences(user.getUid() + "_pref", MODE_PRIVATE);
+            String userData = sharedPreferences.getString(user.getUid() + "_data", null);
             editor = sharedPreferences.edit();
 
-            if(!connectionChecker.isConnected()){
-                if(userData != null){
+            if (!connectionChecker.isConnected()) {
+                if (userData != null) {
                     UserModel userModel = gson.fromJson(userData, UserModel.class);
                     getValues(userModel);
                     handlesAccComplete(true);
@@ -150,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
 
             loadUserPhoto();
         }
-        nav_menu.setOnClickListener(v->{
+        nav_menu.setOnClickListener(v -> {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 // If the drawer is open, close it
                 drawerLayout.closeDrawer(GravityCompat.START);
@@ -159,39 +165,40 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-        nav_account.setOnClickListener(v->{
-            if (isUser()){
+        nav_account.setOnClickListener(v -> {
+            if (isUser()) {
                 loadUserProfile();
             }
         });
 
-        nav_add_post.setOnClickListener(v->{
+        nav_add_post.setOnClickListener(v -> {
             addNewPost();
         });
+        checkNewMessage();
         navigationView.setNavigationItemSelectedListener(item -> {
             drawerLayout.closeDrawer(GravityCompat.START, false);
-            if (item.getItemId() == R.id.nav_side_dashboard){
+            if (item.getItemId() == R.id.nav_side_dashboard) {
                 viewPager2Main.setCurrentItem(0);
             }
-            if(item.getItemId() == R.id.nav_side_logout){
+            if (item.getItemId() == R.id.nav_side_logout) {
                 FirebaseAuth.getInstance().signOut();
             }
-            if(item.getItemId() == R.id.nav_side_donors || item.getItemId() == R.id.nav_side_recipients){
+            if (item.getItemId() == R.id.nav_side_donors || item.getItemId() == R.id.nav_side_recipients) {
                 Intent usersIntent = new Intent(this, UsersActivity.class);
                 usersIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(usersIntent);
             }
-            if(item.getItemId() == R.id.nav_side_donate || item.getItemId() == R.id.nav_side_make_request){
+            if (item.getItemId() == R.id.nav_side_donate || item.getItemId() == R.id.nav_side_make_request) {
                 Intent donateRequest = new Intent(this, ActivityDonationInfo.class);
                 donateRequest.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(donateRequest);
             }
-            if(item.getItemId() == R.id.nav_side_my_donations || item.getItemId() == R.id.nav_my_side_request){
+            if (item.getItemId() == R.id.nav_side_my_donations || item.getItemId() == R.id.nav_my_side_request) {
                 Intent myDonations = new Intent(this, donor_donations.class);
                 myDonations.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(myDonations);
             }
-            if(item.getItemId() == R.id.nav_side_about){
+            if (item.getItemId() == R.id.nav_side_about) {
                 Intent aboutUs = new Intent(this, ActivityAboutUs.class);
                 aboutUs.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(aboutUs);
@@ -200,6 +207,82 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         });
     }
 
+    private void checkNewMessage() {
+        DatabaseReference messageRef = databaseReference.child("Messages");
+        messageRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                if (snapshot.exists()) {
+                    ChatModel newChat = snapshot.getValue(ChatModel.class);
+                    if (newChat.getReceiver().equals(user.getUid()) && !newChat.getSender().equals(user.getUid())) {
+                        final String chanelId = "NEW_MESSAGES";
+                        // Create an explicit intent for the notification
+                        Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+                        createNotificationChannel(chanelId);
+
+                        // Build the notification
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, chanelId)
+                                .setSmallIcon(R.drawable.message_white)
+                                .setContentTitle("New Message")
+                                .setContentText(newChat.getMessage())
+                                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                .setContentIntent(pendingIntent)
+                                .setAutoCancel(true);
+
+                        // Show the notification
+                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+                        if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return;
+                        }
+                        notificationManager.notify(0, builder.build());
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void createNotificationChannel(String CHANEL_ID) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Channel Name";
+            String description = "Channel Description";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANEL_ID, name, importance);
+            channel.setDescription(description);
+
+            // Register the channel with the system
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
     private void checkUpdates(String EXPECT_VERSION){
         databaseReference.child("App")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
